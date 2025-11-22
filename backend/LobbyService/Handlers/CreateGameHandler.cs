@@ -1,4 +1,6 @@
 ﻿using DistributedChess.LobbyService.Game;
+using GameEngine.Board;
+using Shared.Game;
 using Shared.Messages;
 using System.Net.WebSockets;
 using System.Text.Json;
@@ -30,19 +32,23 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
 
         var playerName = Lobby.GetPlayerName(socketId);
 
+        if (playerName == null)
+        {
+            return;
+        }
+
         room.AddPlayer(socketId, playerName);
 
         var gameCreated = new GameCreatedMessage
         {
             GameId = room.GameId,
-            GameName = room.GameName
+            GameName = room.GameName,
+            InitialBoard = MapBoard(room.Board)
         };
 
-        // broadcast lista partite (tutta la lobby)
         foreach (var ws in Connections.AllSockets)
             await SendJson(ws, gameCreated);
 
-        // notifica join nella room (solo al creatore, per ora)
         var joinedMsg = new PlayerJoinedGameMessage
         {
             GameId = room.GameId,
@@ -51,5 +57,30 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
         };
 
         await SendJson(socket, joinedMsg);
+    }
+
+
+    private static List<BoardSquareDto> MapBoard(Board board)
+    {
+        var result = new List<BoardSquareDto>();
+
+        for (int rank = 0; rank < 8; rank++)
+        {
+            for (int file = 0; file < 8; file++)
+            {
+                var piece = board.GetPiece(rank, file);
+                if (piece == null) continue;
+
+                result.Add(new BoardSquareDto
+                {
+                    Rank = rank,
+                    File = file,
+                    PieceType = piece.Type.ToString().ToLowerInvariant(),
+                    PieceColor = piece.Color.ToString().ToLowerInvariant()
+                });
+            }
+        }
+
+        return result;
     }
 }

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LobbyService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9a679b0e0deab140489899a285bf36cecf3645a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+516a933359b3b50290d2a7e10d27091a3fdbe200")]
 [assembly: System.Reflection.AssemblyProductAttribute("LobbyService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LobbyService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,4 +1,6 @@
-﻿namespace DistributedChess.LobbyService.Game;
+﻿using GameEngine.Board;
+
+namespace DistributedChess.LobbyService.Game;
 
 public class GamePlayer
 {
@@ -10,6 +12,7 @@ public class GameRoom
 {
     public string GameId { get; }
     public string GameName { get; }
+    public Board Board { get; }
 
     private readonly List<GamePlayer> _players = new();
 
@@ -17,6 +20,7 @@ public class GameRoom
     {
         GameId = id;
         GameName = name;
+        Board = BoardFactory.CreateInitialBoard();
     }
 
     public IReadOnlyList<GamePlayer> Players => _players;
