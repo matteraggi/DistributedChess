@@ -1,7 +1,11 @@
+using DistributedChess.LobbyService.Game;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<WebSocketHandler>();
+builder.Services.AddSingleton<LobbyManager>();
+builder.Services.AddSingleton<GameManager>();
 
 var app = builder.Build();
 

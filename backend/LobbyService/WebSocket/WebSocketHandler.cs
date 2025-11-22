@@ -1,23 +1,32 @@
-﻿using System.Net.WebSockets;
+﻿using DistributedChess.LobbyService.Game;
+using Shared.Messages;
+using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using Shared.Messages;
 
 
 
 public class WebSocketHandler
 {
     private readonly ConnectionManager _manager;
+    private readonly LobbyManager _lobby;
+    private readonly GameManager _games;
+
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        WriteIndented = false
     };
 
-    public WebSocketHandler(ConnectionManager manager)
+    public WebSocketHandler(ConnectionManager manager, LobbyManager lobby, GameManager games)
     {
         _manager = manager;
+        _lobby = lobby;
+        _games = games;
+
     }
 
     public async Task HandleAsync(HttpContext context)
@@ -75,6 +84,42 @@ public class WebSocketHandler
                         await HandleHello(socket, hello);
                         break;
                     }
+                case MessageType.JoinLobby:
+                    {
+                        var join = JsonSerializer.Deserialize<JoinLobbyMessage>(json, JsonOptions);
+                        if (join is null)
+                        {
+                            await SendError(socket, "Invalid JoinLobby message");
+                            break;
+                        }
+
+                        await HandleJoinLobby(id, socket, join);
+                        break;
+                    }
+                case MessageType.CreateGame:
+                    {
+                        var msg = JsonSerializer.Deserialize<CreateGameMessage>(json, JsonOptions);
+                        if (msg == null)
+                        {
+                            await SendError(socket, "Invalid CreateGame message");
+                            break;
+                        }
+
+                        await HandleCreateGame(socketId: id, socket: socket, msg: msg);
+                        break;
+                    }
+                case MessageType.JoinGame:
+                    {
+                        var jg = JsonSerializer.Deserialize<JoinGameMessage>(json, JsonOptions);
+                        if (jg == null)
+                        {
+                            await SendError(socket, "Invalid JoinGame message");
+                            break;
+                        }
+
+                        await HandleJoinGame(socketId: id, socket: socket, jg);
+                        break;
+                    }
 
                 default:
                     await SendError(socket, $"Unknown message type: {baseMsg.Type}");
@@ -108,5 +153,91 @@ public class WebSocketHandler
 
         return SendJson(socket, pong);
     }
+
+    private async Task HandleJoinLobby(string socketId, WebSocket socket, JoinLobbyMessage join)
+    {
+        _lobby.AddPlayer(socketId, join.PlayerName);
+
+        var broadcast = new PlayerJoinedLobbyMessage
+        {
+            PlayerId = socketId,
+            PlayerName = join.PlayerName
+        };
+
+        foreach (var kvp in _manager.AllSockets)
+        {
+            await SendJson(kvp, broadcast);
+        }
+        
+    }
+
+private async Task HandleCreateGame(string socketId, WebSocket socket, CreateGameMessage msg)
+{
+    // 1. crea stanza
+    var room = _games.CreateGame(msg.GameName);
+
+    // 2. recupera nome del creatore
+    var playerName = _lobby.GetPlayerName(socketId);
+
+    // 3. aggiunge il creatore alla stanza
+    room.AddPlayer(socketId, playerName);
+
+    // 4. manda GameCreated a tutta la lobby (facoltativo ma molto utile)
+    var gameCreated = new GameCreatedMessage
+    {
+        GameId = room.GameId,
+        GameName = room.GameName
+    };
+
+    foreach (var ws in _manager.AllSockets)
+        await SendJson(ws, gameCreated);
+
+    // 5. manda PlayerJoinedGame SOLO ai giocatori della stanza
+    var joinedMsg = new PlayerJoinedGameMessage
+    {
+        GameId = room.GameId,
+        PlayerId = socketId,
+        PlayerName = playerName
+    };
+
+    await SendJson(socket, joinedMsg);  // unico giocatore della room
+}
+
+
+    private async Task HandleJoinGame(string socketId, WebSocket socket, JoinGameMessage msg)
+    {
+        var room = _games.GetGame(msg.GameId);
+        if (room == null)
+        {
+            await SendError(socket, "Game not found");
+            return;
+        }
+
+        var playerName = _lobby.GetPlayerName(socketId);
+        if (playerName == null)
+        {
+            await SendError(socket, "Player not in lobby");
+            return;
+        }
+
+        // aggiungi al game
+        room.AddPlayer(socketId, playerName);
+
+        var joined = new PlayerJoinedGameMessage
+        {
+            GameId = room.GameId,
+            PlayerId = socketId,
+            PlayerName = playerName
+        };
+
+        // broadcast solo ai player della room
+        foreach (var p in room.Players)
+        {
+            var ws = _manager.GetSocket(p.PlayerId);
+            if (ws != null)
+                await SendJson(ws, joined);
+        }
+    }
+
 
 }
