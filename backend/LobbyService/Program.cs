@@ -1,4 +1,5 @@
 using DistributedChess.LobbyService.Game;
+using LobbyService.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,15 @@ builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<WebSocketHandler>();
 builder.Services.AddSingleton<LobbyManager>();
 builder.Services.AddSingleton<GameManager>();
+builder.Services.AddSingleton<IMessageHandler, HelloHandler>();
+builder.Services.AddSingleton<IMessageHandler, LobbyHandler>();
+builder.Services.AddSingleton<IMessageHandler, CreateGameHandler>();
+builder.Services.AddSingleton<IMessageHandler, JoinGameHandler>();
+
+builder.Services.AddSingleton<MessageRouter>();
+builder.Services.AddSingleton<WebSocketHandler>();
+
+
 
 var app = builder.Build();
 
