@@ -16,10 +16,10 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
 
     public async Task HandleAsync(string socketId, WebSocket socket, BaseMessage baseMsg, string rawJson)
     {
-        var msg = JsonSerializer.Deserialize<CreateGameMessage>(rawJson, JsonOptions);
+        var msg = JsonSerializer.Deserialize<CreateGameMessage>(rawJson, WebSocketExtensions.JsonOptions);
         if (msg == null)
         {
-            await SendError(socket, "Invalid CreateGame message");
+            await socket.SendErrorAsync("Invalid CreateGame message");
             return;
         }
 
@@ -47,7 +47,8 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
         };
 
         foreach (var ws in Connections.AllSockets)
-            await SendJson(ws, gameCreated);
+            await socket.SendJsonAsync(gameCreated);
+
 
         var joinedMsg = new PlayerJoinedGameMessage
         {
@@ -56,7 +57,7 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
             PlayerName = playerName
         };
 
-        await SendJson(socket, joinedMsg);
+        await socket.SendJsonAsync(joinedMsg);
     }
 
 

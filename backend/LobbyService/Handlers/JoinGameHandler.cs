@@ -14,10 +14,10 @@ public class JoinGameHandler : BaseHandler, IMessageHandler
 
     public async Task HandleAsync(string socketId, WebSocket socket, BaseMessage baseMsg, string rawJson)
     {
-        var msg = JsonSerializer.Deserialize<JoinGameMessage>(rawJson, JsonOptions);
+        var msg = JsonSerializer.Deserialize<JoinGameMessage>(rawJson, WebSocketExtensions.JsonOptions);
         if (msg == null)
         {
-            await SendError(socket, "Invalid JoinGame message");
+            await socket.SendErrorAsync("Invalid JoinGame message");
             return;
         }
 
@@ -29,14 +29,14 @@ public class JoinGameHandler : BaseHandler, IMessageHandler
         var room = Games.GetGame(msg.GameId);
         if (room == null)
         {
-            await SendError(socket, "Game not found");
+            await socket.SendErrorAsync("Game not found");
             return;
         }
 
         var playerName = Lobby.GetPlayerName(socketId);
         if (playerName == null)
         {
-            await SendError(socket, "Player not in lobby");
+            await socket.SendErrorAsync("Player not in lobby");
             return;
         }
 
@@ -53,7 +53,7 @@ public class JoinGameHandler : BaseHandler, IMessageHandler
         {
             var ws = Connections.GetSocket(p.PlayerId);
             if (ws != null)
-                await SendJson(ws, joined);
+                await socket.SendJsonAsync(joined);
         }
     }
 }

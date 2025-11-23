@@ -28,19 +28,24 @@ public class WebSocketHandler
     {
         var buffer = new byte[4096];
 
-        while (socket.State == WebSocketState.Open)
+        try
         {
-            var res = await socket.ReceiveAsync(buffer, CancellationToken.None);
-            if (res.CloseStatus.HasValue)
-                break;
+            while (socket.State == WebSocketState.Open)
+            {
+                var res = await socket.ReceiveAsync(buffer, CancellationToken.None);
+                if (res.CloseStatus.HasValue)
+                    break;
 
-            var raw = Encoding.UTF8.GetString(buffer, 0, res.Count);
-
-            var baseMsg = JsonSerializer.Deserialize<BaseMessage>(raw);
-            if (baseMsg == null)
-                continue;
-
-            await _router.RouteAsync(socketId, socket, baseMsg, raw);
+                var raw = Encoding.UTF8.GetString(buffer, 0, res.Count);
+                var baseMsg = JsonSerializer.Deserialize<BaseMessage>(raw);
+                if (baseMsg != null)
+                    await _router.RouteAsync(socketId, socket, baseMsg, raw);
+            }
+        }
+        finally
+        {
+            await _connections.RemoveSocketAsync(socketId);
         }
     }
+
 }

@@ -1,10 +1,11 @@
 ﻿using Shared.Messages;
+using System.Collections.Concurrent;
 using System.Linq;
 
 
 public class LobbyManager
 {
-    private readonly Dictionary<string, string> _players = new();
+    private readonly ConcurrentDictionary<string, string> _players = new();
 
     public void AddPlayer(string socketId, string playerName)
     {
@@ -20,7 +21,7 @@ public class LobbyManager
 
     public void RemovePlayer(string socketId)
     {
-        _players.Remove(socketId);
+        _players.TryRemove(socketId, out _);
     }
 
     public IEnumerable<(string id, string name)> Players =>

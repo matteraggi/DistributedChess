@@ -14,13 +14,13 @@ public class HelloHandler : BaseHandler, IMessageHandler
 
     public async Task HandleAsync(string socketId, WebSocket socket, BaseMessage baseMsg, string rawJson)
     {
-        var hello = JsonSerializer.Deserialize<HelloMessage>(rawJson, JsonOptions);
+        var hello = JsonSerializer.Deserialize<HelloMessage>(rawJson, WebSocketExtensions.JsonOptions);
 
         var pong = new PongMessage
         {
             Message = $"Hello {hello?.ClientId}"
         };
 
-        await SendJson(socket, pong);
+        await socket.SendJsonAsync(pong);
     }
 }

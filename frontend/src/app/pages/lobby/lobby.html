@@ -1,0 +1,19 @@
+<h1>Lobby</h1>
+
+<section>
+    <h2>Players in lobby</h2>
+    <ul>
+        @for (p of players(); track p.playerId) {
+        <li>{{ p.playerName }}</li>
+        }
+    </ul>
+</section>
+
+<section>
+    <h2>Available Games</h2>
+    <ul>
+        @for (g of games(); track g.gameId) {
+        <li>{{ g.gameName }}</li>
+        }
+    </ul>
+</section>

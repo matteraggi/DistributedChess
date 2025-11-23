@@ -8,10 +8,15 @@ public enum MessageType
 
     JoinLobby = 10,
     PlayerJoinedLobby = 11,
+    PlayerLeftLobby = 12,
 
     CreateGame = 20,
     GameCreated = 21,
 
     JoinGame = 22,
-    PlayerJoinedGame = 23
+    PlayerJoinedGame = 23,
+
+    LobbyState = 51,
+
+
 }
