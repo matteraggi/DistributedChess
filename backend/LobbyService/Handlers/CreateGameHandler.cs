@@ -22,7 +22,6 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
             await socket.SendErrorAsync("Invalid CreateGame message");
             return;
         }
-
         await HandleCreateGame(socketId, socket, msg);
     }
 
@@ -31,11 +30,8 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
         var room = Games.CreateGame(msg.GameName);
 
         var playerName = Lobby.GetPlayerName(socketId);
-
         if (playerName == null)
-        {
             return;
-        }
 
         room.AddPlayer(socketId, playerName);
 
@@ -46,9 +42,12 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
             InitialBoard = MapBoard(room.Board)
         };
 
+        // Broadcast corretto
         foreach (var ws in Connections.AllSockets)
-            await socket.SendJsonAsync(gameCreated);
-
+        {
+            if (ws.State == WebSocketState.Open)
+                await ws.SendJsonAsync(gameCreated);
+        }
 
         var joinedMsg = new PlayerJoinedGameMessage
         {
@@ -57,7 +56,9 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
             PlayerName = playerName
         };
 
-        await socket.SendJsonAsync(joinedMsg);
+        // Solo al chiamante
+        if (socket.State == WebSocketState.Open)
+            await socket.SendJsonAsync(joinedMsg);
     }
 
 

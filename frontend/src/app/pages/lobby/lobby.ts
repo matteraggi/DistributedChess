@@ -1,5 +1,6 @@
 import { Component, effect, OnInit, signal } from '@angular/core';
 import { WebsocketService } from '../../services/websocket.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-lobby',
@@ -13,7 +14,7 @@ export class LobbyPage implements OnInit {
   players = signal<any[]>([]);
   games = signal<any[]>([]);
 
-  constructor(private ws: WebsocketService) { }
+  constructor(private ws: WebsocketService, private router: Router) { }
 
   async ngOnInit() {
 
@@ -22,27 +23,31 @@ export class LobbyPage implements OnInit {
       console.log('LobbyPage received message:', msg);
       switch (msg.type) {
 
-        case 51:
+        case 51: // LobbyStateMessage
           this.players.set(msg.players || []);
           this.games.set(msg.games || []);
           break;
 
-        case 11:
+        case 11: // PlayerJoinedLobbyMessage
           this.players.update(players => [...players, {
             playerId: msg.playerId,
             playerName: msg.playerName
           }]);
           break;
 
-        case 21:
+        case 21: // GameCreatedMessage
           this.games.update(games => [...games, {
             gameId: msg.gameId,
             gameName: msg.gameName
           }]);
           break;
 
-        case 12:
+        case 12: // PlayerLeftLobbyMessage
           this.players.update(players => players.filter(p => p.playerId !== msg.playerId));
+          break;
+
+        case 23: // GameRemovedMessage
+          this.router.navigate(['/game', msg.gameId]);
           break;
 
         default:
@@ -53,5 +58,12 @@ export class LobbyPage implements OnInit {
 
     // 2. Collegarsi e joinare la lobby
     await this.ws.joinLobby("Player_" + Math.floor(Math.random() * 10000));
+  }
+
+  async createGame() {
+    await this.ws.send({
+      type: 20,
+      gameName: "Partita_" + Math.floor(Math.random() * 10000),
+    });
   }
 }
