@@ -51,7 +51,6 @@ export class LobbyPage implements OnInit {
           break;
 
         default:
-          console.warn('Unhandled message type in LobbyPage:', msg.type);
           break;
       }
     });
@@ -66,4 +65,12 @@ export class LobbyPage implements OnInit {
       gameName: "Partita_" + Math.floor(Math.random() * 10000),
     });
   }
+
+  async joinGame(gameId: string) {
+    await this.ws.send({
+      type: 22,     // MessageType.JoinGame
+      gameId: gameId
+    });
+  }
+
 }

@@ -1,4 +1,5 @@
-﻿using DistributedChess.LobbyService.Game;
+﻿// CreateGameHandler.cs
+using DistributedChess.LobbyService.Game;
 using GameEngine.Board;
 using Shared.Game;
 using Shared.Messages;
@@ -22,6 +23,7 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
             await socket.SendErrorAsync("Invalid CreateGame message");
             return;
         }
+
         await HandleCreateGame(socketId, socket, msg);
     }
 
@@ -30,11 +32,11 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
         var room = Games.CreateGame(msg.GameName);
 
         var playerName = Lobby.GetPlayerName(socketId);
-        if (playerName == null)
-            return;
+        if (playerName == null) return;
 
         room.AddPlayer(socketId, playerName);
 
+        // Broadcast agli altri giocatori (lista giochi) eccetto il creatore
         var gameCreated = new GameCreatedMessage
         {
             GameId = room.GameId,
@@ -42,13 +44,13 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
             InitialBoard = MapBoard(room.Board)
         };
 
-        // Broadcast corretto
         foreach (var ws in Connections.AllSockets)
         {
-            if (ws.State == WebSocketState.Open)
+            if (ws.State == WebSocketState.Open && ws != socket)
                 await ws.SendJsonAsync(gameCreated);
         }
 
+        // Messaggio personale solo al creatore (tipo 23)
         var joinedMsg = new PlayerJoinedGameMessage
         {
             GameId = room.GameId,
@@ -56,16 +58,13 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
             PlayerName = playerName
         };
 
-        // Solo al chiamante
         if (socket.State == WebSocketState.Open)
             await socket.SendJsonAsync(joinedMsg);
     }
 
-
     private static List<BoardSquareDto> MapBoard(Board board)
     {
         var result = new List<BoardSquareDto>();
-
         for (int rank = 0; rank < 8; rank++)
         {
             for (int file = 0; file < 8; file++)
@@ -82,7 +81,6 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
                 });
             }
         }
-
         return result;
     }
 }

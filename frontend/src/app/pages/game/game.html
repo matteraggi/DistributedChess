@@ -1,8 +1,10 @@
 <!-- src/app/pages/game/game.html -->
 <h1>Game Page</h1>
-<p>Game ID: {{ gameId }}</p>
+<p>Game: {{ gameId }}</p>
 
-<!-- Qui poi aggiungerai scacchiera, giocatori, mosse, ecc. -->
-<div class="board">
-    <!-- render scacchiera -->
-</div>
+<h3>Players:</h3>
+<ul>
+    @for (p of players(); track trackByPlayerId(p)) {
+    <li>{{ p.playerName }} {{p.playerId}}</li>
+    }
+</ul>

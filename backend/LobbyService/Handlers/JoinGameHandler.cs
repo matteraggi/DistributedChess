@@ -1,4 +1,5 @@
 ﻿using DistributedChess.LobbyService.Game;
+using LobbyService.Models;
 using Shared.Messages;
 using System.Net.WebSockets;
 using System.Text.Json;
@@ -40,20 +41,37 @@ public class JoinGameHandler : BaseHandler, IMessageHandler
             return;
         }
 
+        // Aggiungi il giocatore al gioco
         room.AddPlayer(socketId, playerName);
 
-        var joined = new PlayerJoinedGameMessage
+        // 1️⃣ Invio stato completo solo al nuovo entrato
+        var stateMsg = new GameStateMessage
+        {
+            GameId = room.GameId,
+            Players = room.Players.Select(p => new Player
+            {
+                PlayerId = p.PlayerId,
+                PlayerName = p.PlayerName
+            }).ToList()
+        };
+
+        if (socket.State == WebSocketState.Open)
+            await socket.SendJsonAsync(stateMsg);
+
+        // 2️⃣ Avvisa tutti gli altri giocatori già dentro che è arrivato un nuovo giocatore
+        var joinedMsg = new PlayerJoinedGameMessage
         {
             GameId = room.GameId,
             PlayerId = socketId,
             PlayerName = playerName
         };
 
+        // invia a tutti tranne duplicare
         foreach (var p in room.Players)
         {
             var ws = Connections.GetSocket(p.PlayerId);
-            if (ws != null)
-                await socket.SendJsonAsync(joined);
+            if (ws != null && ws.State == WebSocketState.Open)
+                await ws.SendJsonAsync(joinedMsg);
         }
     }
 }

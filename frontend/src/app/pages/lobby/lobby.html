@@ -16,6 +16,7 @@
     <ul>
         @for (g of games(); track g.gameId) {
         <li>{{ g.gameName }}</li>
+        <button (click)="joinGame(g.gameId)">Join</button>
         }
     </ul>
 </section>
