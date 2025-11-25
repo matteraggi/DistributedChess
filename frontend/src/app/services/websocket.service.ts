@@ -1,21 +1,17 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class WebsocketService implements OnDestroy {
 
     private connectionPromise?: Promise<void>;
     private socket?: WebSocket;
-    private messageSubject = new Subject<any>();
-    private messageHandlers: ((msg: any) => void)[] = [];
 
+    private messageSubject = new Subject<any>(); // flusso globale di messaggi
     messages$ = this.messageSubject.asObservable();
 
-    onMessage(handler: (msg: any) => void) {
-        this.messageHandlers.push(handler);
-    }
+    constructor() { }
 
     connect(url: string = 'ws://localhost:5164/ws'): Promise<void> {
         if (this.connectionPromise) return this.connectionPromise;
@@ -30,7 +26,7 @@ export class WebsocketService implements OnDestroy {
 
             this.socket.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
-                this.messageHandlers.forEach(h => h(msg));
+                this.messageSubject.next(msg); // TUTTI i messaggi arrivano qui
             };
 
             this.socket.onclose = () => {
@@ -45,7 +41,6 @@ export class WebsocketService implements OnDestroy {
                 this.connectionPromise = undefined;
             };
         });
-
         return this.connectionPromise;
     }
 
@@ -64,6 +59,10 @@ export class WebsocketService implements OnDestroy {
         this.socket?.close();
     }
 
+    // Filtra i messaggi per tipo
+    onType(type: number): Observable<any> {
+        return this.messages$.pipe(filter(msg => msg.type === type));
+    }
 
     async joinLobby(playerName: string) {
         await this.connect();
@@ -72,5 +71,4 @@ export class WebsocketService implements OnDestroy {
             playerName
         });
     }
-
 }

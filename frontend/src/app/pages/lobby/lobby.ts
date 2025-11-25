@@ -18,52 +18,40 @@ export class LobbyPage implements OnInit {
 
   async ngOnInit() {
 
-    // 1. Registrare handler PRIMA della connessione
-    this.ws.onMessage(msg => {
-      console.log('LobbyPage received message:', msg);
-      switch (msg.type) {
-
-        case 51: // LobbyStateMessage
-          this.players.set(msg.players || []);
-          this.games.set(msg.games || []);
-          break;
-
-        case 11: // PlayerJoinedLobbyMessage
-          this.players.update(players => [...players, {
-            playerId: msg.playerId,
-            playerName: msg.playerName
-          }]);
-          break;
-
-        case 21: // GameCreatedMessage
-          this.games.update(games => [...games, {
-            gameId: msg.gameId,
-            gameName: msg.gameName
-          }]);
-          break;
-
-        case 12: // PlayerLeftLobbyMessage
-          this.players.update(players => players.filter(p => p.playerId !== msg.playerId));
-          break;
-
-        case 23: // GameRemovedMessage
-          this.router.navigate(['/game', msg.gameId]);
-          break;
-
-        case 26: // GameRemovedMessage
-          this.games.update(games =>
-            games.filter(g => g.gameId !== msg.gameId)
-          );
-          break;
-
-        default:
-          break;
-      }
+    // LobbyStateMessage
+    this.ws.onType(51).subscribe(msg => {
+      this.players.set(msg.players || []);
+      this.games.set(msg.games || []);
     });
 
-    // 2. Collegarsi e joinare la lobby
+    // PlayerJoinedLobbyMessage
+    this.ws.onType(11).subscribe(msg => {
+      this.players.update(p => [...p, { playerId: msg.playerId, playerName: msg.playerName }]);
+    });
+
+    // GameCreatedMessage
+    this.ws.onType(21).subscribe(msg => {
+      this.games.update(g => [...g, { gameId: msg.gameId, gameName: msg.gameName }]);
+    });
+
+    // PlayerLeftLobbyMessage
+    this.ws.onType(12).subscribe(msg => {
+      this.players.update(p => p.filter(x => x.playerId !== msg.playerId));
+    });
+
+    // PlayerJoinedGame → naviga a game
+    this.ws.onType(23).subscribe(msg => {
+      this.router.navigate(['/game', msg.gameId]);
+    });
+
+    // GameRemovedMessage
+    this.ws.onType(26).subscribe(msg => {
+      this.games.update(g => g.filter(x => x.gameId !== msg.gameId));
+    });
+
     await this.ws.joinLobby("Player_" + Math.floor(Math.random() * 10000));
   }
+
 
   async createGame() {
     await this.ws.send({

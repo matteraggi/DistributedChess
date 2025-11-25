@@ -1,0 +1,1 @@
+- [ ] playerid in localstorage in modo da non generare ogni volta (mandare player id in connessione dal backend)
