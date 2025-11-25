@@ -22,41 +22,37 @@ public class LobbyHandler : BaseHandler, IMessageHandler
             return;
         }
 
-        Lobby.AddPlayer(socketId, msg.PlayerName);
+        // Se il frontend ha mandato playerId, usalo; altrimenti fallback su socketId
+        var playerId = string.IsNullOrEmpty(msg.PlayerId) ? socketId : msg.PlayerId;
 
+        // Salva o aggiorna il giocatore in lobby
+        Lobby.AddOrUpdatePlayer(playerId, msg.PlayerName, socketId);
+
+        // Notifica a tutti i giocatori in lobby che qualcuno è entrato
         var joined = new PlayerJoinedLobbyMessage
         {
-            PlayerId = socketId,
+            PlayerId = playerId,
             PlayerName = msg.PlayerName
         };
 
-        // iterate over a snapshot and handle per-socket failures
-        var snapshot = Connections.AllSockets.ToList();
-        foreach (var ws in snapshot)
+        foreach (var ws in Connections.AllSockets.ToList())
         {
             try
             {
                 if (ws?.State == WebSocketState.Open)
                     await ws.SendJsonAsync(joined);
             }
-            catch (WebSocketException)
-            {
-                // remote closed connection or write failed - ignore and continue
-            }
-            catch (ObjectDisposedException)
-            {
-                // underlying response stream was disposed - ignore and continue
-            }
+            catch { /* ignore write errors */ }
         }
 
-
+        // Invia stato completo solo al nuovo entrato
         var lobbyState = new LobbyStateMessage
         {
             Players = Lobby.Players
                 .Select(p => new LobbyPlayerDto
                 {
-                    PlayerId = p.id,
-                    PlayerName = p.name
+                    PlayerId = p.PlayerId,
+                    PlayerName = p.PlayerName
                 })
                 .ToList(),
 
@@ -74,13 +70,6 @@ public class LobbyHandler : BaseHandler, IMessageHandler
             if (socket?.State == WebSocketState.Open)
                 await socket.SendJsonAsync(lobbyState);
         }
-        catch (WebSocketException)
-        {
-            return;
-        }
-        catch (ObjectDisposedException)
-        {
-            return;
-        }
+        catch { /* ignore */ }
     }
 }

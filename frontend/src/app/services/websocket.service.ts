@@ -8,7 +8,7 @@ export class WebsocketService implements OnDestroy {
     private connectionPromise?: Promise<void>;
     private socket?: WebSocket;
 
-    private messageSubject = new Subject<any>(); // flusso globale di messaggi
+    private messageSubject = new Subject<any>();
     messages$ = this.messageSubject.asObservable();
 
     constructor() { }
@@ -26,7 +26,7 @@ export class WebsocketService implements OnDestroy {
 
             this.socket.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
-                this.messageSubject.next(msg); // TUTTI i messaggi arrivano qui
+                this.messageSubject.next(msg);
             };
 
             this.socket.onclose = () => {
@@ -45,9 +45,10 @@ export class WebsocketService implements OnDestroy {
     }
 
     async send(message: any): Promise<void> {
-        if (this.connectionPromise) {
-            await this.connectionPromise;
-        }
+        console.log('Sending message', message);
+
+        if (this.connectionPromise) await this.connectionPromise;
+
         if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
             console.warn('WebSocket not connected, cannot send');
             return;
@@ -59,16 +60,40 @@ export class WebsocketService implements OnDestroy {
         this.socket?.close();
     }
 
-    // Filtra i messaggi per tipo
     onType(type: number): Observable<any> {
         return this.messages$.pipe(filter(msg => msg.type === type));
     }
 
-    async joinLobby(playerName: string) {
+    getOrCreatePlayerId(): string {
+        let id = localStorage.getItem("playerId");
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem("playerId", id);
+        }
+        return id;
+    }
+
+    async joinLobby(playerName?: string) {
         await this.connect();
+
+        let playerId = localStorage.getItem("playerId");
+        let name = localStorage.getItem("playerName");
+
+        if (!playerId) {
+            playerId = crypto.randomUUID();
+            localStorage.setItem("playerId", playerId);
+        }
+
+        if (!name && playerName) {
+            name = playerName;
+            localStorage.setItem("playerName", name);
+        }
+
         await this.send({
-            type: 10,
-            playerName
+            type: 10,          // JoinLobby
+            playerId,
+            playerName: name
         });
     }
+
 }
