@@ -59,8 +59,25 @@ public class LeaveGameHandler : BaseHandler, IMessageHandler
                 await ws.SendJsonAsync(leftMsg);
         }
 
-        // se la stanza è vuota → cleanup opzionale
+        // se la stanza è vuota → cleanup
         if (!room.Players.Any())
+        {
             Games.RemoveGame(room.GameId);
+
+            var removedMsg = new DeletedGameMessage
+            {
+                GameId = room.GameId
+            };
+
+            var snapshot = Connections.AllSockets.ToList();
+
+            // avvisa tutti i client nella lobby
+            foreach (var ws in snapshot)
+            {
+                if (ws != null && ws.State == WebSocketState.Open)
+                    await ws.SendJsonAsync(removedMsg);
+            }
+        }
+
     }
 }

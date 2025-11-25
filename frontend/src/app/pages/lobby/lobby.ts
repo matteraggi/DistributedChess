@@ -50,6 +50,12 @@ export class LobbyPage implements OnInit {
           this.router.navigate(['/game', msg.gameId]);
           break;
 
+        case 26: // GameRemovedMessage
+          this.games.update(games =>
+            games.filter(g => g.gameId !== msg.gameId)
+          );
+          break;
+
         default:
           break;
       }
