@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "uSRvgHvds38=",
+  "dgSpecHash": "AhzuznYa+LM=",
   "success": true,
-  "projectFilePath": "C:\\Users\\matte\\Code\\DistributedChess\\backend\\LobbyService\\LobbyService.csproj",
+  "projectFilePath": "C:\\Users\\Matteo\\Code\\DistributedChess\\backend\\LobbyService\\LobbyService.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\matte\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.0\\microsoft.aspnetcore.openapi.10.0.0.nupkg.sha512",
-    "C:\\Users\\matte\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+    "C:\\Users\\Matteo\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.0\\microsoft.aspnetcore.openapi.10.0.0.nupkg.sha512",
+    "C:\\Users\\Matteo\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
   ],
   "logs": []
 }

@@ -33,4 +33,13 @@ public class GameRoom
         return _players.Where(kv => kv.PlayerId != playerId)
                        .Select(kv => (kv.PlayerId, kv.PlayerName));
     }
+
+    public void RemovePlayer(string playerId)
+    {
+        var player = _players.FirstOrDefault(p => p.PlayerId == playerId);
+        if (player != null)
+        {
+            _players.Remove(player);
+        }
+    }
 }

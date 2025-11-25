@@ -11,6 +11,7 @@ builder.Services.AddSingleton<IMessageHandler, HelloHandler>();
 builder.Services.AddSingleton<IMessageHandler, LobbyHandler>();
 builder.Services.AddSingleton<IMessageHandler, CreateGameHandler>();
 builder.Services.AddSingleton<IMessageHandler, JoinGameHandler>();
+builder.Services.AddSingleton<IMessageHandler, LeaveGameHandler>();
 
 builder.Services.AddSingleton<MessageRouter>();
 builder.Services.AddSingleton<WebSocketHandler>();

@@ -22,6 +22,8 @@ export class GamePage implements OnInit {
   ) { }
 
   async ngOnInit() {
+    window.addEventListener('beforeunload', this.onWindowUnload);
+
     this.gameId = this.route.snapshot.paramMap.get('id')!;
 
     this.ws.send({
@@ -65,6 +67,20 @@ export class GamePage implements OnInit {
   }
   trackByPlayerId(player: any) {
     return player.playerId;
+  }
+
+  ngOnDestroy() {
+    this.ws.send({ type: 25, gameId: this.gameId });
+    window.removeEventListener('beforeunload', this.onWindowUnload);
+  }
+
+  onWindowUnload = () => {
+    this.ws.send({ type: 25, gameId: this.gameId });
+  };
+
+  goBack() {
+    this.ws.send({ type: 25, gameId: this.gameId });
+    this.router.navigate(['/lobby']);
   }
 
 }

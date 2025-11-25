@@ -10,3 +10,15 @@ C:\Users\matte\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEn
 C:\Users\matte\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\refint\GameEngine.dll
 C:\Users\matte\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.pdb
 C:\Users\matte\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\ref\GameEngine.dll
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\bin\Debug\net10.0\GameEngine.deps.json
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\bin\Debug\net10.0\GameEngine.dll
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\bin\Debug\net10.0\GameEngine.pdb
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.AssemblyInfoInputs.cache
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.AssemblyInfo.cs
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.csproj.CoreCompileInputs.cache
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.sourcelink.json
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.dll
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\refint\GameEngine.dll
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.pdb
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\ref\GameEngine.dll

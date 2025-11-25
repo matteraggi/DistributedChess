@@ -16,6 +16,11 @@ public class GameManager
         return room;
     }
 
+    public bool RemoveGame(string id)
+    {
+        return _games.TryRemove(id, out _);
+    }
+
     public GameRoom? GetGame(string id)
     {
         return _games.TryGetValue(id, out var room) ? room : null;
