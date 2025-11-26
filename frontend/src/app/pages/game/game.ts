@@ -14,6 +14,8 @@ export class Game implements OnInit {
 
   gameId!: string;
   players = signal<Player[]>([]);
+  readyPlayers = signal<Set<string>>(new Set());
+  amIReady = signal<boolean>(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -24,8 +26,6 @@ export class Game implements OnInit {
     window.addEventListener('beforeunload', this.onWindowUnload);
 
     this.gameId = this.route.snapshot.paramMap.get('id')!;
-
-    this.ws.send({ type: 22, gameId: this.gameId });
 
     // GameStateMessage
     this.ws.onType(52).subscribe(msg => {
@@ -50,6 +50,20 @@ export class Game implements OnInit {
     this.ws.onType(24).subscribe(msg => {
       this.players.update(players => players.filter(p => p.playerId !== msg.playerId));
     });
+
+    // 31 → PlayerReadyStatusMessage
+    this.ws.onType(31).subscribe((msg: { gameId: string, readyPlayers: string[] }) => {
+      if (msg.gameId !== this.gameId) return; // sicurezza: solo per questa partita
+      // aggiorna la signal dei giocatori ready
+      this.readyPlayers.set(new Set(msg.readyPlayers));
+    });
+
+    // 32 → GameStartMessage
+    this.ws.onType(32).subscribe((msg: { gameId: string }) => {
+      if (msg.gameId !== this.gameId) return;
+      this.router.navigate(['/board', this.gameId]);
+    });
+
   }
 
   trackByPlayerId(player: any) {
@@ -70,4 +84,9 @@ export class Game implements OnInit {
     this.router.navigate(['/lobby']);
   }
 
+  toggleReady() {
+
+    this.ws.send({ type: 30, gameId: this.gameId, playerId: this.ws.getOrCreatePlayerId(), ready: !this.amIReady() });
+    this.amIReady.set(!this.amIReady());
+  }
 }

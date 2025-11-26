@@ -1,9 +1,4 @@
 ﻿using DistributedChess.LobbyService.Game;
-using Shared.Messages;
-using System.Net.WebSockets;
-using System.Text;
-using System.Text.Json;
-
 namespace LobbyService.Handlers;
 
 public abstract class BaseHandler

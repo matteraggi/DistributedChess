@@ -1,59 +1,59 @@
-﻿using System.Collections.Concurrent;
-using System.Net.Sockets;
+﻿using Shared.Redis;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using System.Text;
-using System.Text.Json;
 
 public class ConnectionManager
 {
     private readonly ConcurrentDictionary<string, WebSocket> _sockets = new();
+    private readonly ConcurrentDictionary<string, string> _socketToPlayer = new(); // socketId → playerId
+    private readonly RedisService _redis;
 
-    private readonly LobbyManager _lobby;
-
-    public ConnectionManager(LobbyManager lobby)
+    public ConnectionManager(RedisService redis)
     {
-        _lobby = lobby;
-    }
-
-    public async Task BroadcastAsync(object message)
-    {
-        foreach (var (_, socket) in _sockets)
-        {
-            if (socket.State == WebSocketState.Open)
-            {
-                await socket.SendJsonAsync(message);
-            }
-        }
+        _redis = redis;
     }
 
     public IEnumerable<WebSocket> AllSockets => _sockets.Values;
 
-    public void AddSocket(string id, WebSocket socket)
+    public void AddSocket(string socketId, WebSocket socket)
     {
-        _sockets[id] = socket;
+        _sockets[socketId] = socket;
     }
+
+    public void AddPlayerMapping(string socketId, string playerId)
+    {
+        _socketToPlayer[socketId] = playerId;
+    }
+
+    public WebSocket? GetSocket(string socketId) => _sockets.TryGetValue(socketId, out var ws) ? ws : null;
+
+    public string? GetPlayerIdBySocket(string socketId) => _socketToPlayer.TryGetValue(socketId, out var pid) ? pid : null;
 
     public async Task RemoveSocketAsync(string socketId)
     {
-        _sockets.TryRemove(socketId, out var socket);
-
-        var username = _lobby.GetPlayerName(socketId);
-        _lobby.RemovePlayer(socketId);
-
-        var leftMsg = new PlayerLeftLobbyMessage
+        _sockets.TryRemove(socketId, out var ws);
+        if (_socketToPlayer.TryRemove(socketId, out var playerId))
         {
-            PlayerId = socketId,
-            Username = username ?? ""
-        };
+            // rimuovi lo stato locale su Redis (opzionale, dipende se vuoi "log out" completo)
+            await _redis.RemovePlayerAsync(playerId);
 
-        await BroadcastAsync(leftMsg);
+            // notifica a tutti che il giocatore ha lasciato
+            var leftMsg = new PlayerLeftLobbyMessage
+            {
+                PlayerId = playerId,
+                Username = (await _redis.GetPlayerAsync(playerId))?.PlayerName ?? ""
+            };
+
+            await BroadcastAsync(leftMsg);
+        }
     }
 
-
-    public WebSocket? GetSocket(string id)
+    public async Task BroadcastAsync(object message)
     {
-        _sockets.TryGetValue(id, out var socket);
-        return socket;
+        foreach (var ws in _sockets.Values)
+        {
+            if (ws.State == WebSocketState.Open)
+                await ws.SendJsonAsync(message);
+        }
     }
-
 }

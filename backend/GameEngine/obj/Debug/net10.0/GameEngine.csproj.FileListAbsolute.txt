@@ -22,3 +22,4 @@ C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameE
 C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\refint\GameEngine.dll
 C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.pdb
 C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\ref\GameEngine.dll
+C:\Users\Matteo\Code\DistributedChess\backend\GameEngine\obj\Debug\net10.0\GameEngine.csproj.AssemblyReference.cache

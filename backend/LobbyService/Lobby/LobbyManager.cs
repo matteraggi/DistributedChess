@@ -1,42 +1,33 @@
-﻿using Shared.Messages;
-using System.Collections.Concurrent;
-using System.Linq;
+﻿using Shared.Models;
+using Shared.Redis;
 
 public class LobbyManager
 {
-    // Mappa playerId → playerName
-    private readonly ConcurrentDictionary<string, string> _players = new();
+    private readonly RedisService _redis;
 
-    // Mappa playerId → socketId
-    private readonly ConcurrentDictionary<string, string> _sockets = new();
-
-    // Aggiunge o aggiorna un giocatore
-    public void AddOrUpdatePlayer(string playerId, string playerName, string socketId)
+    public LobbyManager(RedisService redis)
     {
-        _players[playerId] = playerName;
-        _sockets[playerId] = socketId;
+        _redis = redis;
     }
 
-    public string? GetPlayerName(string playerId)
+    // Salva/aggiorna player su Redis
+    public async Task AddOrUpdatePlayerAsync(string playerId, string playerName, string socketId)
     {
-        return _players.TryGetValue(playerId, out var name)
-            ? name
-            : null;
+        await _redis.SetPlayerAsync(playerId, playerName, socketId);
     }
 
-    public string? GetSocketId(string playerId)
+    public async Task<Player?> GetPlayerAsync(string playerId)
     {
-        return _sockets.TryGetValue(playerId, out var socketId)
-            ? socketId
-            : null;
+        return await _redis.GetPlayerAsync(playerId);
     }
 
-    public void RemovePlayer(string playerId)
+    public async Task<IEnumerable<Player>> GetAllPlayersAsync()
     {
-        _players.TryRemove(playerId, out _);
-        _sockets.TryRemove(playerId, out _);
+        return await _redis.GetAllPlayersAsync(); // puoi implementare un metodo in RedisService che ritorna tutti i players
     }
 
-    public IEnumerable<(string PlayerId, string PlayerName)> Players =>
-        _players.Select(kv => (kv.Key, kv.Value));
+    public async Task RemovePlayerAsync(string playerId)
+    {
+        await _redis.RemovePlayerAsync(playerId);
+    }
 }

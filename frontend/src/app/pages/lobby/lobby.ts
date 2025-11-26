@@ -26,7 +26,13 @@ export class LobbyPage implements OnInit {
 
     // PlayerJoinedLobbyMessage
     this.ws.onType(11).subscribe(msg => {
-      this.players.update(p => [...p, { playerId: msg.playerId, playerName: msg.playerName }]);
+      this.players.update(p => {
+        // se non esiste già il player con questo id, aggiungilo
+        if (!p.some(x => x.playerId === msg.playerId)) {
+          return [...p, { playerId: msg.playerId, playerName: msg.playerName }];
+        }
+        return p; // altrimenti ritorna l'array invariato
+      });
     });
 
     // GameCreatedMessage
@@ -57,13 +63,15 @@ export class LobbyPage implements OnInit {
     await this.ws.send({
       type: 20,
       gameName: "Partita_" + Math.floor(Math.random() * 10000),
+      playerId: this.ws.getOrCreatePlayerId()
     });
   }
 
   async joinGame(gameId: string) {
     await this.ws.send({
       type: 22,     // MessageType.JoinGame
-      gameId: gameId
+      gameId: gameId,
+      playerId: this.ws.getOrCreatePlayerId()
     });
   }
 

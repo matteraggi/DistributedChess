@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
+import { Subject, tap } from 'rxjs';
 import { filter } from 'rxjs/operators';
+
 
 @Injectable({ providedIn: 'root' })
 export class WebsocketService implements OnDestroy {
@@ -10,6 +11,7 @@ export class WebsocketService implements OnDestroy {
 
     private messageSubject = new Subject<any>();
     messages$ = this.messageSubject.asObservable();
+    private lastGameState: Map<string, any> = new Map();
 
     constructor() { }
 
@@ -26,6 +28,7 @@ export class WebsocketService implements OnDestroy {
 
             this.socket.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
+                console.log('WebSocket message received', msg);
                 this.messageSubject.next(msg);
             };
 
@@ -60,8 +63,19 @@ export class WebsocketService implements OnDestroy {
         this.socket?.close();
     }
 
-    onType(type: number): Observable<any> {
-        return this.messages$.pipe(filter(msg => msg.type === type));
+    onType(type: number) {
+        return this.messages$.pipe(
+            filter(m => m.type === type),
+            tap(msg => {
+                if (type === 52) {
+                    this.lastGameState.set(msg.gameId, msg);
+                }
+            })
+        );
+    }
+
+    getCachedGameState(gameId: string) {
+        return this.lastGameState.get(gameId);
     }
 
     getOrCreatePlayerId(): string {

@@ -1,8 +1,8 @@
 ﻿using DistributedChess.LobbyService.Game;
+using Shared.Models;
 using Shared.Messages;
 using System.Net.WebSockets;
 using System.Text.Json;
-using System.Linq;
 
 namespace LobbyService.Handlers;
 
@@ -22,13 +22,14 @@ public class LobbyHandler : BaseHandler, IMessageHandler
             return;
         }
 
-        // Se il frontend ha mandato playerId, usalo; altrimenti fallback su socketId
         var playerId = string.IsNullOrEmpty(msg.PlayerId) ? socketId : msg.PlayerId;
 
-        // Salva o aggiorna il giocatore in lobby
-        Lobby.AddOrUpdatePlayer(playerId, msg.PlayerName, socketId);
+        // Salva o aggiorna il giocatore in Redis
+        await Lobby.AddOrUpdatePlayerAsync(playerId, msg.PlayerName, socketId);
 
-        // Notifica a tutti i giocatori in lobby che qualcuno è entrato
+        Connections.AddPlayerMapping(socketId, playerId);
+
+        // Notifica a tutti i giocatori in lobby
         var joined = new PlayerJoinedLobbyMessage
         {
             PlayerId = playerId,
@@ -42,27 +43,27 @@ public class LobbyHandler : BaseHandler, IMessageHandler
                 if (ws?.State == WebSocketState.Open)
                     await ws.SendJsonAsync(joined);
             }
-            catch { /* ignore write errors */ }
+            catch { /* ignore */ }
         }
 
-        // Invia stato completo solo al nuovo entrato
+        // Recupera lo stato completo della lobby da Redis
+        var players = await Lobby.GetAllPlayersAsync();
+        var games = await Games.GetAllGamesAsync();
+
         var lobbyState = new LobbyStateMessage
         {
-            Players = Lobby.Players
-                .Select(p => new LobbyPlayerDto
-                {
-                    PlayerId = p.PlayerId,
-                    PlayerName = p.PlayerName
-                })
-                .ToList(),
+            Players = players.Select(p => new Player
+            {
+                PlayerId = p.PlayerId,
+                PlayerName = p.PlayerName
+            }).ToList(),
 
-            Games = Games.GetAllGames()
-                .Select(g => new LobbyGameDto
-                {
-                    GameId = g.GameId,
-                    GameName = g.GameName
-                })
-                .ToList()
+            Games = games.Select(g => new GameRoom(g.GameId, g.GameName)
+            {
+                Players = g.Players,
+                Capacity = g.Capacity
+            }).ToList()
+
         };
 
         try

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Shared.Game;
+namespace Shared.Models;
 
 public class BoardSquareDto
 {

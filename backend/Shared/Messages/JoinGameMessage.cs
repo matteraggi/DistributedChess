@@ -6,6 +6,7 @@ public class JoinGameMessage : BaseMessage
 {
     [JsonPropertyName("gameId")]
     public string GameId { get; set; } = "";
+    public string PlayerId { get; set; } = "";
 
     public JoinGameMessage()
     {

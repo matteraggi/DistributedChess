@@ -6,6 +6,7 @@ public class CreateGameMessage : BaseMessage
 {
     [JsonPropertyName("gameName")]
     public string GameName { get; set; } = "";
+    public string PlayerId { get; set; } = "";
 
     public CreateGameMessage()
     {
