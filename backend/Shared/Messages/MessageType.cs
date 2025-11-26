@@ -24,6 +24,7 @@ public enum MessageType
     GameStart = 32,
 
     LobbyState = 51,
-    GameState = 52
+    GameState = 52,
+    RequestGameState = 53,
 
 }

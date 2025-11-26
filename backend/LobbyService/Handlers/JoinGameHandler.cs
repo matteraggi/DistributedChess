@@ -51,17 +51,6 @@ public class JoinGameHandler : BaseHandler, IMessageHandler
         if (!room.Players.Any(p => p.PlayerId == playerId))
             await Games.AddPlayerAsync(room.GameId, msg.PlayerId, player.PlayerName);
 
-        // 1️⃣ Invia stato completo solo al nuovo entrato
-        var stateMsg = new GameStateMessage
-        {
-            GameId = room.GameId,
-            Players = room.Players.Select(p => new Player
-            {
-                PlayerId = p.PlayerId,
-                PlayerName = p.PlayerName
-            }).ToList()
-        };
-
         // 2️⃣ Notifica tutti gli altri giocatori già dentro che è arrivato un nuovo player
         var joinedMsg = new PlayerJoinedGameMessage
         {
@@ -73,13 +62,12 @@ public class JoinGameHandler : BaseHandler, IMessageHandler
         if (socket.State == WebSocketState.Open)
         {
             await socket.SendJsonAsync(joinedMsg);
-            await socket.SendJsonAsync(stateMsg);
         }
 
 
         foreach (var p in room.Players)
         {
-            if (p.PlayerId == playerId) continue; // non duplicare al nuovo entrato
+            if (p.PlayerId == playerId) continue;
 
             var ws = Connections.GetSocket(p.PlayerId);
             if (ws != null && ws.State == WebSocketState.Open)

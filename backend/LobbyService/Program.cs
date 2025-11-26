@@ -13,6 +13,7 @@ builder.Services.AddSingleton<IMessageHandler, CreateGameHandler>();
 builder.Services.AddSingleton<IMessageHandler, JoinGameHandler>();
 builder.Services.AddSingleton<IMessageHandler, LeaveGameHandler>();
 builder.Services.AddSingleton<IMessageHandler, ReadyGameHandler>();
+builder.Services.AddSingleton<IMessageHandler, RequestGameStateHandler>();
 
 builder.Services.AddSingleton<MessageRouter>();
 builder.Services.AddSingleton<WebSocketHandler>();

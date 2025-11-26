@@ -63,18 +63,6 @@ public class CreateGameHandler : BaseHandler, IMessageHandler
         }
 
         var players = await Games.GetPlayersAsync(room.GameId);
-        var stateMsg = new GameStateMessage
-        {
-            GameId = room.GameId,
-            Players = players.Select(p => new Player
-            {
-                PlayerId = p.PlayerId,
-                PlayerName = p.PlayerName
-            }).ToList()
-        };
-
-        if (socket.State == WebSocketState.Open)
-            await socket.SendJsonAsync(stateMsg);
     }
 
 }

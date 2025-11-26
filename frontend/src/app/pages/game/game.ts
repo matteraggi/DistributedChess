@@ -27,6 +27,12 @@ export class Game implements OnInit {
 
     this.gameId = this.route.snapshot.paramMap.get('id')!;
 
+    await this.ws.send({
+      type: 53,
+      gameId: this.gameId,
+      playerId: this.ws.getOrCreatePlayerId()
+    });
+
     // GameStateMessage
     this.ws.onType(52).subscribe(msg => {
       const uniquePlayers = msg.players.filter(
