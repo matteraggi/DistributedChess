@@ -18,7 +18,7 @@ builder.Services.AddSingleton<IMessageHandler, RequestGameStateHandler>();
 builder.Services.AddSingleton<MessageRouter>();
 builder.Services.AddSingleton<WebSocketHandler>();
 
-builder.Services.AddSingleton(new RedisService("localhost:6379"));
+builder.Services.AddSingleton(new RedisService("redis:6379"));
 
 
 var app = builder.Build();
