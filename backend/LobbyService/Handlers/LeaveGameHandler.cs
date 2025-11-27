@@ -28,28 +28,56 @@ public class LeaveGameHandler : BaseHandler, IMessageHandler
     private async Task HandleLeaveGame(WebSocket socket, LeaveGameMessage msg)
     {
         var room = await Games.GetGameAsync(msg.GameId);
-
         if (room == null)
         {
             await socket.SendErrorAsync("Game not found");
             return;
         }
 
-        var player = room.Players.FirstOrDefault(p => p.PlayerId == msg.PlayerId);
+        var redisPlayers = await Games.GetPlayersAsync(msg.GameId);
+        var player = redisPlayers.FirstOrDefault(p => p.PlayerId == msg.PlayerId);
+
         if (player == null)
         {
             await socket.SendErrorAsync("Player not in this game");
             return;
         }
 
-        // rimuovi giocatore
+        // sync room model
+        if (!room.Players.Any(p => p.PlayerId == player.PlayerId))
+            room.Players.Add(player);
+
+
+        // remove
         await Games.RemovePlayerAsync(msg.GameId, msg.PlayerId);
 
-        // messaggio agli altri
+        // reload updated room (might be null!)
+        room = await Games.GetGameAsync(msg.GameId);
+
+        if (room == null || room.Players.Count == 0)
+        {
+            // cleanup
+            await Games.RemoveGameAsync(msg.GameId);
+
+            var removedMsg = new DeletedGameMessage
+            {
+                GameId = msg.GameId
+            };
+
+            foreach (var ws in Connections.AllSockets.ToList())
+            {
+                if (ws != null && ws.State == WebSocketState.Open)
+                    await ws.SendJsonAsync(removedMsg);
+            }
+
+            return;
+        }
+
+        // broadcast PlayerLeftGame
         var leftMsg = new PlayerLeftGameMessage
         {
             GameId = room.GameId,
-            PlayerId = player.PlayerId,
+            PlayerId = msg.PlayerId,
             PlayerName = player.PlayerName
         };
 
@@ -59,26 +87,5 @@ public class LeaveGameHandler : BaseHandler, IMessageHandler
             if (ws != null && ws.State == WebSocketState.Open)
                 await ws.SendJsonAsync(leftMsg);
         }
-
-        // se la stanza è vuota → cleanup
-        if (!room.Players.Any())
-        {
-            await Games.RemoveGameAsync(room.GameId);
-
-            var removedMsg = new DeletedGameMessage
-            {
-                GameId = room.GameId
-            };
-
-            var snapshot = Connections.AllSockets.ToList();
-
-            // avvisa tutti i client nella lobby
-            foreach (var ws in snapshot)
-            {
-                if (ws != null && ws.State == WebSocketState.Open)
-                    await ws.SendJsonAsync(removedMsg);
-            }
-        }
-
     }
 }

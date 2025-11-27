@@ -16,6 +16,7 @@ export class Game implements OnInit {
   players = signal<Player[]>([]);
   readyPlayers = signal<Set<string>>(new Set());
   amIReady = signal<boolean>(false);
+  private hasLeft = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -76,17 +77,23 @@ export class Game implements OnInit {
     return player.playerId;
   }
 
+  sendLeaveOnce() {
+    if (this.hasLeft) return;
+    this.hasLeft = true;
+    this.ws.send({ type: 25, gameId: this.gameId, playerId: this.ws.getOrCreatePlayerId() });
+  }
+
   ngOnDestroy() {
-    this.ws.send({ type: 25, gameId: this.gameId });
+    this.sendLeaveOnce();
     window.removeEventListener('beforeunload', this.onWindowUnload);
   }
 
   onWindowUnload = () => {
-    this.ws.send({ type: 25, gameId: this.gameId });
+    this.sendLeaveOnce();
   };
 
   goBack() {
-    this.ws.send({ type: 25, gameId: this.gameId });
+    this.sendLeaveOnce();
     this.router.navigate(['/lobby']);
   }
 
