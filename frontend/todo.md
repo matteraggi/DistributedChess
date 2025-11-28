@@ -1,8 +1,14 @@
-- [ ] aggiornamento corretto player della partita (richiesta di aggiornamento quando la pagina è già ricaricata)
+eventi non funzionanti:
+- [ ] nuova partita aggiornamento in lobby
+- [ ] utente fuori dalla lobby
+- [ ] player ready
+- [ ] nuovo player in lobby
+( in pratica va solo l'aggiornamento )
+errore:
+- [ ] reload gamepage
 
-- [ ] mandare aggiornamento on load della pagina game
 
-- [ ] rimozione partite vuote che non funziona più
+
 
 - [ ] start partita
 
