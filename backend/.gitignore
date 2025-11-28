@@ -1,0 +1,57 @@
+# Visual Studio / .NET
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Rider
+.idea/
+*.sln.iml
+
+# Dotnet temporary files
+*.dbmdl
+*.bak
+*.log
+*.tlog
+*.lastbuildstate
+*.vspscc
+*.vssscc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Others
+*.vsix
+*.ncrunch*
+*.resharper
+_ReSharper.*
+*.dotCover
+*.CoverletOutput
+*.coverage
+*.coveragexml
+
+# Test results
+TestResults/
+*.trx
+
+# Azure DevOps
+*.azurepubxml
+*.publishsettings
+*.userprefs
+
+# Docker (if using Dockerfile in backend)
+docker-compose.override.yml

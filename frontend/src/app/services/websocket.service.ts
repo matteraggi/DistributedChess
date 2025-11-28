@@ -15,7 +15,7 @@ export class WebsocketService implements OnDestroy {
 
     constructor() { }
 
-    connect(url: string = 'ws://localhost:5164/ws'): Promise<void> {
+    connect(url: string = 'ws://localhost:5000/ws'): Promise<void> {
         if (this.connectionPromise) return this.connectionPromise;
 
         this.connectionPromise = new Promise((resolve, reject) => {

@@ -1,16 +1,19 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
+COPY DistributedChess.sln ./
+COPY LobbyService/LobbyService.csproj LobbyService/
+COPY Shared/Shared.csproj Shared/
+COPY GameEngine/GameEngine.csproj GameEngine/
 
-# Copia csproj e restore
-COPY *.csproj ./
-RUN dotnet restore
+RUN dotnet restore DistributedChess.sln
 
-# Copia tutto il codice e build
-COPY . ./
-RUN dotnet publish -c Release -o out
+COPY . .
+RUN dotnet publish LobbyService/LobbyService.csproj -c Release -o /app/publish
 
+
+# Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/out .
+COPY --from=build /app/publish .
 EXPOSE 5000
 ENTRYPOINT ["dotnet", "LobbyService.dll"]
