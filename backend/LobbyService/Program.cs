@@ -3,6 +3,8 @@ using LobbyService.Handlers;
 using Shared.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
+string redisConn = builder.Configuration.GetConnectionString("Redis")
+                   ?? "localhost:6379";
 
 builder.Services.AddSingleton<ConnectionManager>();
 builder.Services.AddSingleton<WebSocketHandler>();
@@ -18,7 +20,7 @@ builder.Services.AddSingleton<IMessageHandler, RequestGameStateHandler>();
 builder.Services.AddSingleton<MessageRouter>();
 builder.Services.AddSingleton<WebSocketHandler>();
 
-builder.Services.AddSingleton(new RedisService("redis:6379"));
+builder.Services.AddSingleton(new RedisService(redisConn));
 
 
 var app = builder.Build();

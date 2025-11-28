@@ -1,6 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, tap } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 
 @Injectable({ providedIn: 'root' })
@@ -15,7 +16,7 @@ export class WebsocketService implements OnDestroy {
 
     constructor() { }
 
-    connect(url: string = 'ws://localhost:5000/ws'): Promise<void> {
+    connect(url: string = environment.wsUrl): Promise<void> {
         if (this.connectionPromise) return this.connectionPromise;
 
         this.connectionPromise = new Promise((resolve, reject) => {
