@@ -1,10 +1,8 @@
 ﻿using Shared.Messages;
+using System.Text.Json.Serialization;
 
-public class DeletedGameMessage : BaseMessage
+public class DeletedGameMessage
 {
+    [JsonPropertyName("gameId")]
     public string GameId { get; set; } = "";
-    public DeletedGameMessage()
-    {
-        Type = MessageType.DeletedGame;
-    }
 }

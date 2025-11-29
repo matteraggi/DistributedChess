@@ -2,13 +2,8 @@
 
 namespace Shared.Messages;
 
-public class ErrorMessage : BaseMessage
+public class ErrorMessage
 {
     [JsonPropertyName("error")]
     public string Error { get; set; } = string.Empty;
-
-    public ErrorMessage()
-    {
-        Type = MessageType.Error;
-    }
 }

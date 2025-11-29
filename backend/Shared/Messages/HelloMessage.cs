@@ -2,13 +2,8 @@
 
 namespace Shared.Messages;
 
-public class HelloMessage : BaseMessage
+public class HelloMessage
 {
     [JsonPropertyName("clientId")]
     public string ClientId { get; set; } = string.Empty;
-
-    public HelloMessage()
-    {
-        Type = MessageType.Hello;
-    }
 }

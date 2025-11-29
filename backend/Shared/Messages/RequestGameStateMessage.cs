@@ -2,16 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Shared.Messages
 {
-    public class RequestGameStateMessage : BaseMessage
+    public class RequestGameStateMessage
     {
-        public RequestGameStateMessage()
-        {
-            Type = MessageType.RequestGameState;
-        }
+        [JsonPropertyName("gameId")]
         public string GameId { get; set; } = "";
+        [JsonPropertyName("playerId")]
         public string PlayerId { get; set; } = "";
     }
 }

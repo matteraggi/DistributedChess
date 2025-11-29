@@ -1,11 +1,8 @@
 ﻿using Shared.Messages;
+using System.Text.Json.Serialization;
 
-public class GameStartMessage : BaseMessage
+public class GameStartMessage
 {
+    [JsonPropertyName("gameId")]
     public string GameId { get; set; } = "";
-    public GameStartMessage()
-    {
-        Type = MessageType.GameStart;
-    }
-
 }

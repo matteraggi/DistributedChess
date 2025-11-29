@@ -1,8 +1,7 @@
-// src/app/pages/game/game.ts
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { WebsocketService } from '../../services/websocket.service';
-import { Player } from '../../models/player';
+import { PlayerDTO } from '../../models/dtos';
+import { SignalRService } from '../../services/SignalRService .service';
 
 @Component({
   selector: 'app-game',
@@ -10,41 +9,43 @@ import { Player } from '../../models/player';
   templateUrl: './game.html',
   styleUrls: ['./game.sass']
 })
-export class Game implements OnInit {
+export class Game implements OnInit, OnDestroy {
 
   gameId!: string;
-  players = signal<Player[]>([]);
+
+  players = signal<PlayerDTO[]>([]);
   readyPlayers = signal<Set<string>>(new Set());
   amIReady = signal<boolean>(false);
+
   private hasLeft = false;
+  private myPlayerId: string;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private ws: WebsocketService
-  ) { }
+    private ws: SignalRService
+  ) {
+    this.myPlayerId = this.ws.getOrCreatePlayerId();
+  }
+
   async ngOnInit() {
     window.addEventListener('beforeunload', this.onWindowUnload);
 
     this.gameId = this.route.snapshot.paramMap.get('id')!;
 
-    await this.ws.send({
-      type: 53,
-      gameId: this.gameId,
-      playerId: this.ws.getOrCreatePlayerId()
-    });
-
-    // GameStateMessage
-    this.ws.onType(52).subscribe(msg => {
+    this.ws.gameState$.subscribe(msg => {
       const uniquePlayers = msg.players.filter(
-        (p: any, index: number, self: any[]) =>
+        (p, index, self) =>
           index === self.findIndex(t => t.playerId === p.playerId)
       );
       this.players.set(uniquePlayers);
+
+      // da espandere con lo stato IsReady.
     });
 
-    // PlayerJoinedGameMessage
-    this.ws.onType(23).subscribe(msg => {
+    this.ws.playerJoinedGame$.subscribe(msg => {
+      if (msg.gameId !== this.gameId) return;
+
       this.players.update(players => {
         if (!players.some(p => p.playerId === msg.playerId)) {
           return [...players, { playerId: msg.playerId, playerName: msg.playerName }];
@@ -53,34 +54,62 @@ export class Game implements OnInit {
       });
     });
 
-    // PlayerLeftGameMessage
-    this.ws.onType(24).subscribe(msg => {
+    this.ws.playerLeftGame$.subscribe(msg => {
+      if (msg.gameId !== this.gameId) return;
       this.players.update(players => players.filter(p => p.playerId !== msg.playerId));
+
+      this.readyPlayers.update(set => {
+        const newSet = new Set(set);
+        newSet.delete(msg.playerId);
+        return newSet;
+      });
     });
 
-    // 31 → PlayerReadyStatusMessage
-    this.ws.onType(31).subscribe((msg: { gameId: string, readyPlayers: string[] }) => {
-      if (msg.gameId !== this.gameId) return; // sicurezza: solo per questa partita
-      // aggiorna la signal dei giocatori ready
-      this.readyPlayers.set(new Set(msg.readyPlayers));
+    this.ws.playerReadyStatus$.subscribe(msg => {
+      if (msg.gameId !== this.gameId) return;
+
+      const newReadySet = new Set<string>();
+
+      msg.playersReady.forEach(p => {
+        if (p.isReady) {
+          newReadySet.add(p.playerId);
+        }
+      });
+
+      this.readyPlayers.set(newReadySet);
     });
 
-    // 32 → GameStartMessage
-    this.ws.onType(32).subscribe((msg: { gameId: string }) => {
+    this.ws.gameStart$.subscribe(msg => {
       if (msg.gameId !== this.gameId) return;
       this.router.navigate(['/board', this.gameId]);
     });
 
+
+    await this.ws.startConnection();
+    await this.ws.requestGameState(this.gameId);
   }
 
-  trackByPlayerId(player: any) {
-    return player.playerId;
+  async toggleReady() {
+    const newState = !this.amIReady();
+    this.amIReady.set(newState);
+
+    await this.ws.readyGame(this.gameId, newState);
   }
 
-  sendLeaveOnce() {
+  async sendLeaveOnce() {
     if (this.hasLeft) return;
     this.hasLeft = true;
-    this.ws.send({ type: 25, gameId: this.gameId, playerId: this.ws.getOrCreatePlayerId() });
+
+    try {
+      await this.ws.leaveGame(this.gameId);
+    } catch (e) {
+      console.error("Errore durante leaveGame", e);
+    }
+  }
+
+  goBack() {
+    this.sendLeaveOnce();
+    this.router.navigate(['/lobby']);
   }
 
   ngOnDestroy() {
@@ -91,15 +120,4 @@ export class Game implements OnInit {
   onWindowUnload = () => {
     this.sendLeaveOnce();
   };
-
-  goBack() {
-    this.sendLeaveOnce();
-    this.router.navigate(['/lobby']);
-  }
-
-  toggleReady() {
-
-    this.ws.send({ type: 30, gameId: this.gameId, playerId: this.ws.getOrCreatePlayerId(), ready: !this.amIReady() });
-    this.amIReady.set(!this.amIReady());
-  }
 }

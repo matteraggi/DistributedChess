@@ -7,7 +7,7 @@
 
 <h3>Players:</h3>
 <ul>
-    @for (p of players(); track trackByPlayerId(p)) {
+    @for (p of players(); track p.playerId) {
     <li>
         {{ p.playerName }}
         <span [style.color]="readyPlayers().has(p.playerId) ? 'green' : 'red'">
