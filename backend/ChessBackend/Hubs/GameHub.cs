@@ -1,20 +1,23 @@
-﻿using LobbyService.Manager;
+﻿using ChessBackend.Manager;
+using GameEngine;
 using Microsoft.AspNetCore.SignalR;
 using Shared.Interfaces;
 using Shared.Messages; // Assumo che qui ci sia PlayerLeftLobbyMessage
 
-namespace LobbyService.Hubs
+namespace ChessBackend.Hubs
 {
     // Partial: così il file resta pulito e la logica specifica va negli altri file
     public partial class GameHub : Hub<IChessClient>
     {
         private readonly LobbyManager _lobbyManager;
         private readonly GameManager _gameManager;
+        private readonly ChessLogic _chessLogic;
 
-        public GameHub(LobbyManager lobbyManager, GameManager gameManager)
+        public GameHub(LobbyManager lobbyManager, GameManager gameManager, ChessLogic chessLogic)
         {
             _lobbyManager = lobbyManager;
             _gameManager = gameManager;
+            _chessLogic = chessLogic;
         }
 
         // Opzionale: Utile per loggare quando qualcuno apre il sito

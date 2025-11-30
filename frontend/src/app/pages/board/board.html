@@ -1,0 +1,49 @@
+<div class="board-container">
+
+    <!-- HEADER INFO -->
+    <div class="game-info">
+        <h1>Partita: {{ gameId }}</h1>
+        <div class="status-box">
+            <p>Tu sei: <strong [style.color]="myColor === 'w' ? 'orange' : (myColor === 'b' ? 'black' : 'gray')">
+                    {{ myColor === 'w' ? 'BIANCO' : (myColor === 'b' ? 'NERO' : 'SPETTATORE') }}
+                </strong></p>
+
+            <p class="turn-indicator" [class.my-turn]="chess.turn() === myColor">
+                Turno:
+                <strong>{{ chess.turn() === 'w' ? 'Bianco' : 'Nero' }}</strong>
+                @if(chess.turn() === myColor){
+                <span> (Tocca a te!)</span>
+                }
+            </p>
+        </div>
+        <button (click)="goBack()">Torna alla Lobby</button>
+    </div>
+
+    <div class="chessboard">
+        @for (row of board; track $index; let r = $index) {
+        <div class="row">
+            @for (square of row; track $index; let c = $index) {
+
+            <!-- Nota: square qui è l'oggetto grafico {type: 'p', color: 'w'} o null -->
+
+            <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
+                [class.selected]="selectedSquare === getSquareNotation(r, c)" (click)="onSquareClick(r, c)">
+
+                @if (square) {
+                <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]" class="piece">
+                }
+
+                <!-- Coordinate visive (opzionali) -->
+                @if(c === 0){
+                <span class="coord"> {{ isFlipped ? (r + 1) : (8 - r) }}</span>
+                }
+                @else if (r===7) {
+                <span class="coord-file"> {{ isFlipped ? ['h','g','f','e','d','c','b','a'][c] :
+                    ['a','b','c','d','e','f','g','h'][c] }}</span>
+                }
+            </div>
+            }
+        </div>
+        }
+    </div>
+</div>

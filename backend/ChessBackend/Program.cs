@@ -1,7 +1,8 @@
-using LobbyService.Hubs;
-using LobbyService.Manager;
+using ChessBackend.Hubs;
+using ChessBackend.Manager;
 using Shared.Redis;
 using StackExchange.Redis;
+using GameEngine;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ string redisConn = builder.Configuration.GetConnectionString("Redis")
 builder.Services.AddSingleton<LobbyManager>();
 builder.Services.AddSingleton<GameManager>();
 builder.Services.AddSingleton(new RedisService(redisConn));
+builder.Services.AddSingleton<ChessLogic>();
 
 // signalR con backplane Redis
 builder.Services.AddSignalR()
