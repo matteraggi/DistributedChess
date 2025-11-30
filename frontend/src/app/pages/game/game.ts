@@ -9,7 +9,7 @@ import { SignalRService } from '../../services/SignalRService .service';
   templateUrl: './game.html',
   styleUrls: ['./game.sass']
 })
-export class Game implements OnInit, OnDestroy {
+export class Game implements OnInit {
 
   gameId!: string;
 
@@ -29,7 +29,7 @@ export class Game implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    window.addEventListener('beforeunload', this.onWindowUnload);
+    //window.addEventListener('beforeunload', this.onWindowUnload);
 
     this.gameId = this.route.snapshot.paramMap.get('id')!;
 
@@ -111,13 +111,14 @@ export class Game implements OnInit, OnDestroy {
     this.sendLeaveOnce();
     this.router.navigate(['/lobby']);
   }
-
-  ngOnDestroy() {
-    this.sendLeaveOnce();
-    window.removeEventListener('beforeunload', this.onWindowUnload);
-  }
-
-  onWindowUnload = () => {
-    this.sendLeaveOnce();
-  };
+  /*
+    ngOnDestroy() {
+      this.sendLeaveOnce();
+      window.removeEventListener('beforeunload', this.onWindowUnload);
+    }
+  
+    onWindowUnload = () => {
+      this.sendLeaveOnce();
+    };
+    */
 }
