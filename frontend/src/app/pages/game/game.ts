@@ -40,7 +40,13 @@ export class Game implements OnInit {
       );
       this.players.set(uniquePlayers);
 
-      // da espandere con lo stato IsReady.
+      const initialReadySet = new Set<string>();
+      msg.players.forEach(p => {
+        if (p.isReady) {
+          initialReadySet.add(p.playerId);
+        }
+      });
+      this.readyPlayers.set(initialReadySet);
     });
 
     this.ws.playerJoinedGame$.subscribe(msg => {
@@ -111,7 +117,10 @@ export class Game implements OnInit {
     this.sendLeaveOnce();
     this.router.navigate(['/lobby']);
   }
-  /*
+
+  /* 
+  Per evitare che ricaricando la pagina il giocatore non trovi più il gioco essendo stato eliminato
+  
     ngOnDestroy() {
       this.sendLeaveOnce();
       window.removeEventListener('beforeunload', this.onWindowUnload);
@@ -120,5 +129,5 @@ export class Game implements OnInit {
     onWindowUnload = () => {
       this.sendLeaveOnce();
     };
-    */
+  */
 }

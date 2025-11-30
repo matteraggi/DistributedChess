@@ -1,0 +1,36 @@
+<div class="board-container">
+    <h2>Game: {{ gameId }}</h2>
+    <div class="turn-indicator">
+        Turno: <strong>{{ chess.turn() === 'w' ? 'Bianco' : 'Nero' }}</strong>
+    </div>
+
+    <div class="chessboard">
+        <!-- Cicla sulle righe (ranks) -->
+        @for (row of board; track $index; let r = $index) {
+        <div class="row">
+            <!-- Cicla sulle colonne (files) -->
+            @for (square of row; track $index; let c = $index) {
+
+            <!-- Casella singola -->
+            <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
+                [class.selected]="selectedSquare === (['a','b','c','d','e','f','g','h'][c] + ['8','7','6','5','4','3','2','1'][r])"
+                (click)="onSquareClick(r, c)">
+
+                <!-- Se c'è un pezzo, mostra immagine -->
+                @if (square) {
+                <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]" class="piece">
+                }
+
+                <!-- Coordinate (Opzionale per debug) -->
+                @if (c===0) {
+                <span class="coord">{{8-r}}</span>
+                }
+                @else if (r===7) {
+                <span class="coord-file">{{['a','b','c','d','e','f','g','h'][c]}}</span>
+                }
+            </div>
+            }
+        </div>
+        }
+    </div>
+</div>

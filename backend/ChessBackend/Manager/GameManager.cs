@@ -1,7 +1,7 @@
 ﻿using Shared.Redis;
 using Shared.Models;
 
-namespace LobbyService.Manager
+namespace ChessBackend.Manager
 {
     public class GameManager
     {

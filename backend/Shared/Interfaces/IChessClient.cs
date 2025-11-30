@@ -20,5 +20,7 @@ namespace Shared.Interfaces
         Task PlayerReadyStatus(PlayerReadyStatusMessage msg);
         Task GameStart(GameStartMessage msg);
         Task ReceiveGameState(GameStateMessage msg);
+        Task MakeMove(MakeMoveMessage msg);
+        Task MoveMade(MoveMadeMessage msg);
     }
 }

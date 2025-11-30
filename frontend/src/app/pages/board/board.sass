@@ -1,0 +1,57 @@
+.board-container
+    display: flex
+    flex-direction: column
+    align-items: center
+    margin-top: 20px
+
+.chessboard
+    display: flex
+    flex-direction: column
+    border: 5px solid #5d4037
+    user-select: none // Evita selezione testo
+
+.row
+    display: flex
+
+.square
+    width: 60px
+    height: 60px
+    display: flex
+    justify-content: center
+    align-items: center
+    position: relative
+    cursor: pointer
+
+    &.white
+        background-color: #f0d9b5 // Colore chiaro classico
+    
+    &.black
+        background-color: #b58863 // Colore scuro classico
+
+    &.selected
+        background-color: #f7e654 // Giallo evidenziatore per selezione
+    
+    // Hover effect
+    &:hover
+        opacity: 0.9
+
+.piece
+    width: 90%
+    height: 90%
+    pointer-events: none // Importante: il click passa al div sotto
+
+.coord
+    position: absolute
+    top: 2px
+    left: 2px
+    font-size: 10px
+    font-weight: bold
+    color: #333
+
+.coord-file
+    position: absolute
+    bottom: 2px
+    right: 2px
+    font-size: 10px
+    font-weight: bold
+    color: #333

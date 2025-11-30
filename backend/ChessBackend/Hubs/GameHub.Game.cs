@@ -2,7 +2,7 @@
 using Shared.Messages;
 using Shared.Models;
 
-namespace LobbyService.Hubs
+namespace ChessBackend.Hubs
 {
     public partial class GameHub
     {
@@ -162,16 +162,14 @@ namespace LobbyService.Hubs
                 playerId = string.IsNullOrEmpty(msg.PlayerId) ? Context.ConnectionId : msg.PlayerId;
             }
 
-            var room = await _gameManager.GetGameAsync(msg.GameId);
-            if (room == null)
-            {
-                throw new HubException("Game not found");
-            }
-
             await _gameManager.SetPlayerReadyAsync(msg.GameId, playerId, msg.IsReady);
 
-            room = await _gameManager.GetGameAsync(msg.GameId);
+            var room = await _gameManager.GetGameAsync(msg.GameId);
             if (room == null) return;
+
+            var currentPlayers = await _gameManager.GetPlayersAsync(msg.GameId);
+
+            room.Players = currentPlayers.ToList();
 
             var readyStatus = room.Players
                 .Select(p => new Player

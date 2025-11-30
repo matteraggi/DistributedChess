@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { DeletedGameMessage, GameCreatedMessage, GameStartMessage, GameStateMessage, LobbyStateMessage, PlayerJoinedGameMessage, PlayerJoinedLobbyMessage, PlayerLeftGameMessage, PlayerLeftLobbyMessage, PlayerReadyStatusMessage } from '../models/dtos';
+import { DeletedGameMessage, GameCreatedMessage, GameStartMessage, GameStateMessage, LobbyStateMessage, PlayerJoinedGameMessage, PlayerJoinedLobbyMessage, PlayerLeftGameMessage, PlayerLeftLobbyMessage, PlayerReadyStatusMessage, MakeMoveMessage, MoveMadeMessage } from '../models/dtos';
 
 @Injectable({ providedIn: 'root' })
 export class SignalRService implements OnDestroy {
@@ -10,16 +10,17 @@ export class SignalRService implements OnDestroy {
     public hubConnection: HubConnection | undefined;
 
     // sostituiscono i tipi
-    public lobbyState$ = new Subject<LobbyStateMessage>();      // type 51
-    public playerJoined$ = new Subject<PlayerJoinedLobbyMessage>();    // type 11
-    public playerLeft$ = new Subject<PlayerLeftLobbyMessage>();      // type 12
-    public gameCreated$ = new Subject<GameCreatedMessage>();     // type 21
-    public gameRemoved$ = new Subject<DeletedGameMessage>();     // type 26
-    public playerJoinedGame$ = new Subject<PlayerJoinedGameMessage>(); // type 23
+    public lobbyState$ = new Subject<LobbyStateMessage>();
+    public playerJoined$ = new Subject<PlayerJoinedLobbyMessage>();
+    public playerLeft$ = new Subject<PlayerLeftLobbyMessage>();
+    public gameCreated$ = new Subject<GameCreatedMessage>();
+    public gameRemoved$ = new Subject<DeletedGameMessage>();
+    public playerJoinedGame$ = new Subject<PlayerJoinedGameMessage>();
     public gameState$ = new Subject<GameStateMessage>();
     public playerLeftGame$ = new Subject<PlayerLeftGameMessage>();
     public playerReadyStatus$ = new Subject<PlayerReadyStatusMessage>();
     public gameStart$ = new Subject<GameStartMessage>();
+    public moveMade$ = new Subject<MoveMadeMessage>();
 
     constructor() { }
 
@@ -86,6 +87,11 @@ export class SignalRService implements OnDestroy {
         this.hubConnection.on('GameStart', (data: GameStartMessage) => {
             console.log('Game Start:', data);
             this.gameStart$.next(data);
+        });
+
+        this.hubConnection.on('MoveMade', (data: MoveMadeMessage) => {
+            console.log('Move Made:', data);
+            this.moveMade$.next(data);
         });
 
         try {
@@ -155,6 +161,18 @@ export class SignalRService implements OnDestroy {
             gameId: gameId,
             playerId: this.getOrCreatePlayerId(),
             isReady: isReady
+        });
+    }
+
+    public async makeMove(gameId: string, from: string, to: string, promotion: string = '') {
+        if (!this.hubConnection) return;
+
+        await this.hubConnection.invoke('MakeMove', {
+            gameId,
+            playerId: this.getOrCreatePlayerId(),
+            from,
+            to,
+            promotion
         });
     }
 

@@ -3,7 +3,7 @@ using Shared.Interfaces;
 using Shared.Messages;
 using Shared.Models;
 
-namespace LobbyService.Hubs
+namespace ChessBackend.Hubs
 {
     public partial class GameHub
     {
