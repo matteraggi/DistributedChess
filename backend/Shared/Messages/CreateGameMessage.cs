@@ -2,13 +2,10 @@
 
 namespace Shared.Messages;
 
-public class CreateGameMessage : BaseMessage
+public class CreateGameMessage
 {
     [JsonPropertyName("gameName")]
     public string GameName { get; set; } = "";
-
-    public CreateGameMessage()
-    {
-        Type = MessageType.CreateGame;
-    }
+    [JsonPropertyName("playerId")]
+    public string PlayerId { get; set; } = "";
 }

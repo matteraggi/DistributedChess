@@ -2,13 +2,8 @@
 
 namespace Shared.Messages;
 
-public class PongMessage : BaseMessage
+public class PongMessage
 {
     [JsonPropertyName("message")]
     public string Message { get; set; } = string.Empty;
-
-    public PongMessage()
-    {
-        Type = MessageType.Pong;
-    }
 }

@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
+    <File Path="Dockerfile" />
   </Folder>
   <Project Path="backend/GameEngine/GameEngine.csproj" Id="e3cd110c-6b82-4532-8e42-e54dd4ac0594" />
   <Project Path="backend/LobbyService/LobbyService.csproj" Id="12c42521-fb48-4b72-a929-9924142b747c" />

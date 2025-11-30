@@ -1,12 +1,19 @@
 <!-- src/app/pages/game/game.html -->
+<button (click)="goBack()">Back and delete game</button>
 <h1>Game Page</h1>
 <p>Game: {{ gameId }}</p>
 
-<button (click)="goBack()">Back to Lobby</button>
+<button (click)="toggleReady()">{{ amIReady() ? 'Not Ready' : 'Ready' }}</button>
 
 <h3>Players:</h3>
 <ul>
-    @for (p of players(); track trackByPlayerId(p)) {
-    <li>{{ p.playerName }} {{p.playerId}}</li>
+    @for (p of players(); track p.playerId) {
+    <li>
+        {{ p.playerName }}
+        <span [style.color]="readyPlayers().has(p.playerId) ? 'green' : 'red'">
+            {{ readyPlayers().has(p.playerId) ? '✔️' : '❌' }}
+        </span>
+    </li>
+
     }
 </ul>

@@ -19,7 +19,12 @@ public enum MessageType
     LeaveGame = 25,
     DeletedGame = 26,
 
+    ReadyGame = 30,
+    PlayerReadyStatus = 31,
+    GameStart = 32,
+
     LobbyState = 51,
-    GameState = 52
+    GameState = 52,
+    RequestGameState = 53,
 
 }

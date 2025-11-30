@@ -1,20 +1,13 @@
-﻿using Shared.Game;
+﻿using Shared.Models;
 using System.Text.Json.Serialization;
 
 namespace Shared.Messages;
 
-public class GameCreatedMessage : BaseMessage
+public class GameCreatedMessage
 {
     [JsonPropertyName("gameId")]
     public string GameId { get; set; } = "";
 
     [JsonPropertyName("gameName")]
     public string GameName { get; set; } = "";
-
-    public List<BoardSquareDto> InitialBoard { get; set; } = new();
-
-    public GameCreatedMessage()
-    {
-        Type = MessageType.GameCreated;
-    }
 }

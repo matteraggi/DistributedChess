@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="GameEngine/GameEngine.csproj" />
+  <Project Path="LobbyService/LobbyService.csproj" />
+  <Project Path="Shared/Shared.csproj" />
+</Solution>

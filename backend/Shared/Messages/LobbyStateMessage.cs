@@ -1,24 +1,11 @@
 ﻿using Shared.Messages;
+using Shared.Models;
+using System.Text.Json.Serialization;
 
-public class LobbyStateMessage : BaseMessage
+public class LobbyStateMessage
 {
-    public List<LobbyPlayerDto> Players { get; set; } = new();
-    public List<LobbyGameDto> Games { get; set; } = new();
-
-    public LobbyStateMessage()
-    {
-        Type = MessageType.LobbyState;
-    }
-}
-
-public class LobbyPlayerDto
-{
-    public string PlayerId { get; set; } = "";
-    public string PlayerName { get; set; } = "";
-}
-
-public class LobbyGameDto
-{
-    public string GameId { get; set; } = "";
-    public string GameName { get; set; } = "";
+    [JsonPropertyName("players")]
+    public List<Player> Players { get; set; } = new();
+    [JsonPropertyName("games")]
+    public List<GameRoom> Games { get; set; } = new();
 }

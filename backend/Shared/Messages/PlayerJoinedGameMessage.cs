@@ -2,7 +2,7 @@
 
 namespace Shared.Messages;
 
-public class PlayerJoinedGameMessage : BaseMessage
+public class PlayerJoinedGameMessage
 {
     [JsonPropertyName("gameId")]
     public string GameId { get; set; } = "";
@@ -12,9 +12,4 @@ public class PlayerJoinedGameMessage : BaseMessage
 
     [JsonPropertyName("playerName")]
     public string PlayerName { get; set; } = "";
-
-    public PlayerJoinedGameMessage()
-    {
-        Type = MessageType.PlayerJoinedGame;
-    }
 }

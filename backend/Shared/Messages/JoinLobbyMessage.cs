@@ -1,11 +1,11 @@
-﻿namespace Shared.Messages;
+﻿using System.Text.Json.Serialization;
 
-public class JoinLobbyMessage : BaseMessage
+namespace Shared.Messages;
+
+public class JoinLobbyMessage
 {
+    [JsonPropertyName("playerName")]
     public string PlayerName { get; set; } = "";
-
-    public JoinLobbyMessage()
-    {
-        Type = MessageType.JoinLobby;
-    }
+    [JsonPropertyName("playerId")]
+    public string PlayerId { get; set; } = "";
 }
