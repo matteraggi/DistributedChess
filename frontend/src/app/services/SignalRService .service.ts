@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { DeletedGameMessage, GameCreatedMessage, GameStartMessage, GameStateMessage, LobbyStateMessage, PlayerJoinedGameMessage, PlayerJoinedLobbyMessage, PlayerLeftGameMessage, PlayerLeftLobbyMessage, PlayerReadyStatusMessage, MakeMoveMessage, MoveMadeMessage } from '../models/dtos';
+import { DeletedGameMessage, GameCreatedMessage, GameStartMessage, GameStateMessage, LobbyStateMessage, PlayerJoinedGameMessage, PlayerJoinedLobbyMessage, PlayerLeftGameMessage, PlayerLeftLobbyMessage, PlayerReadyStatusMessage, MakeMoveMessage, MoveMadeMessage, GameOverMessage } from '../models/dtos';
 
 @Injectable({ providedIn: 'root' })
 export class SignalRService implements OnDestroy {
@@ -21,6 +21,7 @@ export class SignalRService implements OnDestroy {
     public playerReadyStatus$ = new Subject<PlayerReadyStatusMessage>();
     public gameStart$ = new Subject<GameStartMessage>();
     public moveMade$ = new Subject<MoveMadeMessage>();
+    public gameOver$ = new Subject<GameOverMessage>();
 
     constructor() { }
 
@@ -92,6 +93,10 @@ export class SignalRService implements OnDestroy {
         this.hubConnection.on('MoveMade', (data: MoveMadeMessage) => {
             console.log('Move Made:', data);
             this.moveMade$.next(data);
+        });
+
+        this.hubConnection.on('GameOver', (data: GameOverMessage) => {
+            this.gameOver$.next(data);
         });
 
         try {

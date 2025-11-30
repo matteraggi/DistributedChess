@@ -22,5 +22,6 @@ namespace Shared.Interfaces
         Task ReceiveGameState(GameStateMessage msg);
         Task MakeMove(MakeMoveMessage msg);
         Task MoveMade(MoveMadeMessage msg);
+        Task GameOver(GameOverMessage msg);
     }
 }

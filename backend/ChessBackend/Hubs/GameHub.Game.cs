@@ -190,9 +190,25 @@ namespace ChessBackend.Hubs
 
             if (room.Players.All(p => p.IsReady) && room.Players.Count == room.Capacity)
             {
+                room.Teams = new Dictionary<string, string>();
+
+                // alterniamo i colori
+                // 0 -> w, 1 -> b, 2 -> w, 3 -> b...
+                for (int i = 0; i < room.Players.Count; i++)
+                {
+                    string color = (i % 2 == 0) ? "w" : "b";
+                    room.Teams[room.Players[i].PlayerId] = color;
+                }
+
+                room.Fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+                await _gameManager.UpdateGameAsync(room);
+
                 var startMsg = new GameStartMessage
                 {
-                    GameId = room.GameId
+                    GameId = room.GameId,
+                    Fen = room.Fen,
+                    Teams = room.Teams
                 };
 
                 await Clients.Group(msg.GameId).GameStart(startMsg);
@@ -241,7 +257,10 @@ namespace ChessBackend.Hubs
             var stateMsg = new GameStateMessage
             {
                 GameId = room.GameId,
-                Players = currentPlayers.ToList()
+                Players = currentPlayers.ToList(),
+
+                Fen = room.Fen,
+                Teams = room.Teams ?? new Dictionary<string, string>() // Evita null
             };
 
             await Clients.Caller.ReceiveGameState(stateMsg);

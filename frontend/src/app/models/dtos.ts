@@ -50,6 +50,8 @@ export interface RequestGameStateMessage {
 export interface GameStateMessage {
     gameId: string;
     players: PlayerDTO[];
+    fen: string;
+    teams: { [key: string]: string };
 }
 
 export interface PlayerLeftGameMessage {
@@ -71,6 +73,8 @@ export interface PlayerReadyStatusMessage {
 
 export interface GameStartMessage {
     gameId: string;
+    fen: string;
+    teams: { [key: string]: string };
 }
 
 export interface LeaveGameMessage {
@@ -92,4 +96,10 @@ export interface MoveMadeMessage {
     from: string;
     to: string;
     fen: string; // stato completo della scacchiera dopo la mossa
+}
+
+export interface GameOverMessage {
+    gameId: string;
+    winnerPlayerId: string | null;
+    reason: string; // es: "checkmate", "stalemate", "resignation", etc.
 }

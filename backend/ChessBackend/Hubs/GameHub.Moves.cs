@@ -19,19 +19,24 @@ namespace ChessBackend.Hubs
             if (room == null) throw new HubException("Game not found");
 
             // Chiediamo all'Engine di chi è il turno guardando la FEN
-            char turnColor = _chessLogic.GetTurnColor(room.Fen);
+            char turnColor = _chessLogic.GetTurnColor(room.Fen); // 'w'
 
-            string? expectedPlayerId = (turnColor == 'w') ? room.WhitePlayerId : room.BlackPlayerId;
-
-            if (playerId != expectedPlayerId)
+            if (room.Teams.TryGetValue(playerId, out string? playerColor) && playerColor != null)
             {
-                throw new HubException("Non è il tuo turno! (O non sei il colore giusto)");
+                if (playerColor[0] != turnColor)
+                {
+                    throw new HubException("Not your turn!");
+                }
+            }
+            else
+            {
+                throw new HubException("You are not playing in this match!");
             }
 
             // L'Engine ci dirà se è valida e ci darà la nuova FEN.
             if (!_chessLogic.TryMakeMove(room.Fen, msg.From, msg.To, out string newFen))
             {
-                throw new HubException("Mossa illegale secondo le regole degli scacchi.");
+                throw new HubException("Illigal move!");
             }
 
             room.Fen = newFen; // La nuova scacchiera
@@ -51,7 +56,20 @@ namespace ChessBackend.Hubs
 
             if (_chessLogic.IsCheckmate(newFen))
             {
-                // Notifica vittoria...
+                var gameOverMsg = new GameOverMessage
+                {
+                    GameId = room.GameId,
+                    WinnerPlayerId = playerId,
+                    Reason = "Checkmate"
+                };
+
+                await Clients.Group(msg.GameId).GameOver(gameOverMsg);
+
+                //await _gameManager.RemoveGameAsync(room.GameId); 
+            }
+            else if (_chessLogic.IsStalemate(newFen))
+            {
+                // Gestione pareggio...
             }
         }
     }
