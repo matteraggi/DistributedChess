@@ -21,6 +21,7 @@ export class Board implements OnInit {
   selectedSquare: string | null = null;
   isFlipped = false;
   private hasLeft = false;
+  possibleMoves: string[] = [];
 
   pieceImages: { [key: string]: string } = {
     'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg', // Nero
@@ -113,31 +114,34 @@ export class Board implements OnInit {
 
   // Gestione click utente
   onSquareClick(rowIndex: number, colIndex: number) {
-    // 1. Ottieni la coordinata reale considerando la rotazione
     const square = this.getSquareNotation(rowIndex, colIndex) as any;
-
-    // 2. Ottieni il pezzo logico dalla libreria chess
     const piece = this.chess.get(square);
 
-    if (piece) {
-      // Blocco 1: È il mio pezzo?
-      if (this.myColor !== 'spectator' && piece.color !== this.myColor) {
-        if (!this.selectedSquare) return;
-      }
+    // SE CLICCO SU UN MIO PEZZO (Selezione)
+    if (piece && piece.color === this.myColor) {
 
-      if (!this.selectedSquare && this.chess.turn() !== this.myColor) {
-        console.warn("Non è il tuo turno!");
-        return;
-      }
+      // Se non è il mio turno, non calcolo nulla (opzionale)
+      if (this.chess.turn() !== this.myColor) return;
 
-      if (piece.color === this.myColor) {
-        this.selectedSquare = square;
-        return;
-      }
+      this.selectedSquare = square;
+
+      // --- CALCOLO MOSSE POSSIBILI ---
+      // verbose: true ci dà oggetti dettagliati, noi prendiamo solo la destinazione (.to)
+      const moves = this.chess.moves({ square: square, verbose: true });
+      this.possibleMoves = moves.map((m: any) => m.to);
+      return;
     }
 
+    // SE CLICCO ALTROVE (Movimento o Deselezione)
     if (this.selectedSquare) {
-      this.tryMove(this.selectedSquare, square);
+      // Se clicco su una casella valida, muovo
+      if (this.possibleMoves.includes(square)) {
+        this.tryMove(this.selectedSquare, square);
+      } else {
+        // Se clicco a vuoto, deseleziono tutto
+        this.selectedSquare = null;
+        this.possibleMoves = []; // Pulisci i pallini
+      }
     }
   }
 
@@ -150,6 +154,7 @@ export class Board implements OnInit {
       if (move) {
         this.updateBoard();
         this.selectedSquare = null;
+        this.possibleMoves = [];
 
         // 2. Invio al Server
         await this.ws.makeMove(this.gameId, from, to, 'q');
@@ -163,11 +168,18 @@ export class Board implements OnInit {
         if (lastMove && lastMove.from === from && lastMove.to === to) {
           this.chess.undo();
           this.updateBoard();
+          this.selectedSquare = null;
+          this.possibleMoves = [];
           alert("Mossa rifiutata dal server (Desync). La scacchiera è stata ripristinata.");
         }
       }
       this.selectedSquare = null;
     }
+  }
+
+  isPossibleMove(rowIndex: number, colIndex: number): boolean {
+    const square = this.getSquareNotation(rowIndex, colIndex);
+    return this.possibleMoves.includes(square);
   }
 
   private determineMyColor(teams: { [key: string]: string }) {

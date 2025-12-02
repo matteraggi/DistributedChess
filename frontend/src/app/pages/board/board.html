@@ -27,7 +27,8 @@
             <!-- Nota: square qui è l'oggetto grafico {type: 'p', color: 'w'} o null -->
 
             <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
-                [class.selected]="selectedSquare === getSquareNotation(r, c)" (click)="onSquareClick(r, c)">
+                [class.selected]="selectedSquare === getSquareNotation(r, c)" [class.valid-move]="isPossibleMove(r, c)"
+                (click)="onSquareClick(r, c)">
 
                 @if (square) {
                 <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]" class="piece">
@@ -40,6 +41,10 @@
                 @else if (r===7) {
                 <span class="coord-file"> {{ isFlipped ? ['h','g','f','e','d','c','b','a'][c] :
                     ['a','b','c','d','e','f','g','h'][c] }}</span>
+                }
+
+                @if (isPossibleMove(r, c)) {
+                <div class="hint-dot"></div>
                 }
             </div>
             }
