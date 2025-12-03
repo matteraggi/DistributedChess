@@ -1,25 +1,19 @@
-- 4. Posso evidenziare le mosse possibili?
-Sì, ed è facilissimo con chess.js.
-La libreria ha una funzione this.chess.moves({ square: 'e2', verbose: true }) che ti restituisce la lista di tutte le caselle dove il pezzo in 'e2' può andare.
-Potremo usare questa lista per colorare di verde le caselle valide nel tuo HTML.
-
-
 Roadmap - struttura hybrid P2P
 
 Fase 1: Aggiornamento Modelli Dati (Shared)
 Obiettivo: Preparare le strutture dati per supportare squadre, ruoli specifici e il ciclo di vita del voto.
 
 Ristrutturazione GameRoom:
-- [ ] Aggiungere GameMode (enum: Classic1v1, TeamConsensus)
-- [ ] Aggiungere mappa PiecePermissions (es. PlayerA -> ['P', 'K'] per Pedoni/Re)
+- [x] Aggiungere GameMode (enum: Classic1v1, TeamConsensus)
+- [x] Aggiungere mappa PiecePermissions (es. PlayerA -> ['P', 'K'] per Pedoni/Re)
 - [ ] Aggiungere oggetto CurrentProposal (null se idle, popolato se c'è una votazione in corso)
 
 Nuovi DTO (Messaggi):
-- [ ] CreateGameMessage: Aggiungere opzioni per modalità e numero giocatori
-- [ ] ProposeMoveMessage: Simile a MakeMove ma inteso come richiesta
-- [ ] VoteMessage: { GameId, ProposalId, Vote (bool) }
-- [ ] ProposalBroadcastMessage: Il server notifica ai peer di validare una proposta
-- [ ] ProposalResultMessage: Esito del voto (Approvato/Respinto).
+- [x] CreateGameMessage: Aggiungere opzioni per modalità e numero giocatori
+- [x] ProposeMoveMessage: Simile a MakeMove ma inteso come richiesta
+- [x] VoteMessage: { GameId, ProposalId, Vote (bool) }
+- [x] ActiveProposalsUpdateMessage: Il server notifica ai peer di validare una proposta
+- [x] ProposalResultMessage: Esito del voto (Approvato/Respinto).
 
 Fase 2: Backend Logic & Sharding
 Obiettivo: Il Backend smette di essere l'unico decisore e diventa un gestore di stato e "notaio" per i voti (durante la partita).

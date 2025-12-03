@@ -14,5 +14,12 @@ namespace Shared.Messages
         public string Fen { get; set; } = "";
         [JsonPropertyName("teams")]
         public Dictionary<string, string> Teams { get; set; } = new();
+        [JsonPropertyName("mode")]
+        public GameMode Mode { get; set; } = GameMode.Classic1v1;
+        [JsonPropertyName("piecePermission")]
+        public Dictionary<string, List<char>> PiecePermissions { get; set; } = new();
+
+        [JsonPropertyName("activeProposal")]
+        public List<MoveProposal> ActiveProposals { get; set; } = new();
     }
 }

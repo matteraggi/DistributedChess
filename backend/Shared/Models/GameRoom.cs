@@ -8,6 +8,7 @@
         public int Capacity { get; set; } = 2;
         public Dictionary<string, string> Teams { get; set; } = new();
         public string Fen { get; set; } = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        public List<MoveProposal> ActiveProposals { get; set; } = new();
         public GameRoom(string gameId, string gameName)
         {
             GameId = gameId;

@@ -78,12 +78,11 @@
     border-radius: 50%
     pointer-events: none
     
-    // --- AGGIUNGI QUESTE RIGHE PER CENTRARLO SENZA SPOSTARE IL PEZZO ---
     position: absolute
     top: 50%
     left: 50%
     transform: translate(-50%, -50%)
-    z-index: 1 // Si assicura che stia sopra (o metti 0 se vuoi sotto il pezzo, ma sopra lo sfondo)
+    z-index: 1
 
 .valid-move:has(.piece)
     background-color: rgba(255, 27, 27, 0.9) !important
