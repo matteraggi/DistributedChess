@@ -295,6 +295,10 @@ namespace ChessBackend.Hubs
                 Fen = room.Fen,
                 Teams = room.Teams ?? new Dictionary<string, string>(),
                 LastMoveAt = room.LastMoveAt,
+
+                Mode = room.Mode,
+                PiecePermissions = room.PiecePermissions ?? new Dictionary<string, List<char>>(),
+                ActiveProposals = room.ActiveProposals ?? new List<MoveProposal>()
             };
 
             await Clients.Caller.ReceiveGameState(stateMsg);

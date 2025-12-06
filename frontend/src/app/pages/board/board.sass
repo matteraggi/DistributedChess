@@ -103,9 +103,6 @@
     padding: 20px
     flex-wrap: wrap
 
-.board-container
-    // ... quello vecchio ...
-
 .sidebar
     width: 300px
     background: #f8f9fa
@@ -185,3 +182,36 @@
 @keyframes blink
     50%
         opacity: 0.5
+
+
+.toast-notification
+    position: fixed
+    top: 20px
+    left: 50%
+    transform: translateX(-50%)
+    background-color: #333
+    color: white
+    padding: 12px 24px
+    border-radius: 8px
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3)
+    z-index: 2000
+    font-weight: bold
+    animation: slideDown 0.3s ease-out
+
+@keyframes slideDown
+    from
+        top: -50px
+        opacity: 0
+    to
+        top: 20px
+        opacity: 1
+
+.permissions-badge
+    background-color: #e3f2fd // Azzurrino
+    color: #0d47a1
+    padding: 8px 15px
+    border-radius: 20px
+    margin-bottom: 10px
+    display: inline-block
+    font-size: 0.9em
+    border: 1px solid #bbdefb

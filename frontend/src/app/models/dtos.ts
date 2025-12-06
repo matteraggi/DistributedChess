@@ -61,7 +61,7 @@ export interface GameStateMessage {
     teams: { [key: string]: string };
     lastMoveAt: string;
     mode: GameMode;
-    piecePermissions: { [key: string]: string[] }; // Mappa ID -> Array di char ['P', 'K']
+    piecePermission: { [key: string]: string[] }; // Mappa ID -> Array di char ['P', 'K']
     activeProposals: MoveProposal[];
 }
 

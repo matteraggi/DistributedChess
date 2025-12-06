@@ -31,6 +31,8 @@ export class Board implements OnInit, OnDestroy {
   readonly TURN_DURATION = 60;
   now: number = Date.now();
   private timerInterval: any;
+  toastMessage: string | null = null;
+  private toastTimeout: any;
 
   pieceImages: { [key: string]: string } = {
     'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg', // Nero
@@ -46,6 +48,15 @@ export class Board implements OnInit, OnDestroy {
     'B': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
     'Q': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg',
     'K': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
+  };
+
+  pieceNames: { [key: string]: string } = {
+    'P': 'Pedoni',
+    'N': 'Cavalli',
+    'B': 'Alfieri',
+    'R': 'Torri',
+    'Q': 'Regina',
+    'K': 'Re'
   };
 
   constructor(private route: ActivatedRoute, private ws: SignalRService, private router: Router) { }
@@ -80,8 +91,8 @@ export class Board implements OnInit, OnDestroy {
       this.teamsMap = msg.teams;
       this.filterProposals();
       const myId = this.ws.getOrCreatePlayerId();
-      if (msg.piecePermissions && msg.piecePermissions[myId]) {
-        this.myPermissions = msg.piecePermissions[myId];
+      if (msg.piecePermission && msg.piecePermission[myId]) {
+        this.myPermissions = msg.piecePermission[myId];
       } else {
         this.myPermissions = [];
       }
@@ -136,6 +147,16 @@ export class Board implements OnInit, OnDestroy {
     }
   }
 
+  showToast(message: string) {
+    this.toastMessage = message;
+
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage = null;
+    }, 3000);
+  }
+
   updateBoard() {
     let rawBoard = this.chess.board();
 
@@ -157,6 +178,26 @@ export class Board implements OnInit, OnDestroy {
     } else {
       return (files[c] + ranks[r]);
     }
+  }
+
+  getPermissionNames(): string {
+    if (!this.myPermissions || this.myPermissions.length === 0) return 'Tutti';
+    return this.myPermissions.map(p => this.pieceNames[p] || p).join(', ');
+  }
+
+  isMyPieceLocked(piece: any): boolean {
+    if (!piece) return false;
+
+    if (piece.color !== this.myColor) return false;
+
+    if (this.myColor === 'spectator') return false;
+
+    if (this.myPermissions.length > 0) {
+      const typeUpper = piece.type.toUpperCase();
+      return !this.myPermissions.includes(typeUpper);
+    }
+
+    return false;
   }
 
   getGlobalTimerPercentage(): number {
@@ -206,7 +247,8 @@ export class Board implements OnInit, OnDestroy {
       if (this.myPermissions.length > 0) {
         const pieceChar = piece.type.toUpperCase();
         if (!this.myPermissions.includes(pieceChar)) {
-          alert(`🚫 Non puoi controllare questo pezzo!\nIl tuo ruolo ti permette di muovere solo: ${this.myPermissions.join(', ')}`);
+          this.showToast(`🚫 Non è un tuo pezzo!`);
+
           this.selectedSquare = null;
           this.possibleMoves = [];
           return;

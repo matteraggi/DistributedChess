@@ -2,6 +2,12 @@
 
     <div class="board-container">
 
+        @if (toastMessage) {
+        <div class="toast-notification">
+            {{ toastMessage }}
+        </div>
+        }
+
         <div class="timer-header">
             <div class="timer-info">
                 <span>Tempo Turno</span>
@@ -35,6 +41,12 @@
             <button (click)="goBack()">Torna alla Lobby</button>
         </div>
 
+        @if (myPermissions.length > 0) {
+        <div class="permissions-badge">
+            <p>👮 Puoi muovere solo: <strong>{{ getPermissionNames() }}</strong></p>
+        </div>
+        }
+
         <div class="chessboard">
             @for (row of board; track $index; let r = $index) {
             <div class="row">
@@ -48,7 +60,7 @@
 
                     @if (square) {
                     <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]"
-                        class="piece" [class.locked-piece]="!canControlPiece(square)">
+                        class="piece" [class.locked-piece]="isMyPieceLocked(square)">
                     }
 
                     <!-- Coordinate visive (opzionali) -->
@@ -97,11 +109,6 @@
             }
         </div>
         }
-
-        <!-- Debug Info -->
-        <div class="debug-perms" *ngIf="myPermissions.length > 0">
-            <small>I tuoi pezzi: {{ myPermissions.join(', ') }}</small>
-        </div>
     </div>
 
 </div>
