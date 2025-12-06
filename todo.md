@@ -1,8 +1,6 @@
 Roadmap - struttura hybrid P2P
 
 TODO:
-!!! Segnalare quando non si può controllare un pezzo e far funzionare la grafica per pezzi non controllabili (più opaca)
-
 Fase 1: Aggiornamento Modelli Dati (Shared)
 Obiettivo: Preparare le strutture dati per supportare squadre, ruoli specifici e il ciclo di vita del voto.
 
@@ -32,21 +30,19 @@ Step 2: Collect Votes: Riceve voti -> Aggiorna conteggio su Redis -> Verifica qu
 Step 3: Commit/Reject: Se passa -> Esegue mossa (aggiorna FEN) -> Notifica tutti. Se fallisce -> Pulisce stato
 
 Fault Tolerance (Resilienza):
-- [ ] Implementare un Timeout Votazione: Se il quorum non viene raggiunto entro X secondi (es. nodo disconnesso), la proposta scade o viene rigettata automaticamente
+- [x] Implementare un Timeout Votazione: Se il quorum non viene raggiunto entro X secondi (es. nodo disconnesso), la proposta scade o viene rigettata automaticamente
+- [ ] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
 
 Fase 3: Frontend con logica
 Obiettivo: Il Client diventa un nodo attivo che partecipa alla validazione, non solo un visualizzatore
 
 Aggiornamento BoardComponent:
-- [ ] Visualizzazione Ruolo: Mostrare all'utente quali pezzi può muovere (es. evidenziare i propri, opacizzare gli altri)
+- [x] Visualizzazione Ruolo: Mostrare all'utente quali pezzi può muovere (es. evidenziare i propri, opacizzare gli altri)
 - [x] Blocco Input: Impedire il drag & drop dei pezzi non assegnati al proprio ruolo (Sharding lato client)
 
 Interfaccia di Voto:
+- [x] Bottoni Voto, visibili solo ai compagni di squadra
 - [ ] Creare UI "Proposta in arrivo": Quando un compagno propone, mostrare una freccia sulla scacchiera (visualizzazione mossa)
-- [ ] Bottoni Voto, visibili solo ai compagni di squadra
-
-Gestione Stati:
-- [ ] Gestire lo stato visivo "In attesa di approvazione..." per chi ha proposto
 
 Fase 4: Testing Distribuito e Validazione (fault test)
 Obiettivo: Verificare che il sistema si comporti come un sistema distribuito.
