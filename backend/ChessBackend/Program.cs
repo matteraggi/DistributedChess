@@ -3,6 +3,7 @@ using ChessBackend.Manager;
 using Shared.Redis;
 using StackExchange.Redis;
 using GameEngine;
+using ChessBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddSingleton<LobbyManager>();
 builder.Services.AddSingleton<GameManager>();
 builder.Services.AddSingleton(new RedisService(redisConn));
 builder.Services.AddSingleton<ChessLogic>();
+builder.Services.AddHostedService<ProposalTimeoutService>();
+
 
 // signalR con backplane Redis
 builder.Services.AddSignalR()

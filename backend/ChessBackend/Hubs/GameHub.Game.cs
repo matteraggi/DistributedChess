@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Shared.Messages;
 using Shared.Models;
+using ChessBackend.Helper;
 
 namespace ChessBackend.Hubs
 {
@@ -63,6 +64,12 @@ namespace ChessBackend.Hubs
 
             var room = await _gameManager.CreateGameAsync(msg.GameName);
 
+            room.Mode = msg.Mode;
+
+            room.Capacity = (msg.Mode == GameMode.TeamConsensus) ? (msg.TeamSize * 2) : 2;
+
+            await _gameManager.UpdateGameAsync(room);
+
             var player = await _lobbyManager.GetPlayerAsync(playerId);
             if (player == null)
             {
@@ -70,10 +77,6 @@ namespace ChessBackend.Hubs
             }
 
             await _gameManager.AddPlayerAsync(room.GameId, playerId, player.PlayerName);
-
-            // Se UpdateGameAsync serve per salvare modifiche extra, chiamalo, 
-            // ma solitamente AddPlayerAsync dovrebbe già persistere.
-            // await _gameManager.UpdateGameAsync(room); 
 
             await Groups.AddToGroupAsync(Context.ConnectionId, room.GameId);
 
@@ -88,7 +91,8 @@ namespace ChessBackend.Hubs
             var gameCreatedMsg = new GameCreatedMessage
             {
                 GameId = room.GameId,
-                GameName = room.GameName
+                GameName = room.GameName,
+
             };
 
             await Clients.All.GameCreated(gameCreatedMsg);
@@ -192,16 +196,41 @@ namespace ChessBackend.Hubs
             {
                 room.Teams = new Dictionary<string, string>();
 
-                // alterniamo i colori
-                // 0 -> w, 1 -> b, 2 -> w, 3 -> b...
                 for (int i = 0; i < room.Players.Count; i++)
                 {
                     string color = (i % 2 == 0) ? "w" : "b";
                     room.Teams[room.Players[i].PlayerId] = color;
                 }
 
-                room.Fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+                foreach (var player in room.Players)
+                {
+                    var lobbyPlayer = await _lobbyManager.GetPlayerAsync(player.PlayerId);
 
+                    string? connectionId = lobbyPlayer?.SocketId ?? lobbyPlayer?.SocketId;
+
+                    if (!string.IsNullOrEmpty(connectionId))
+                    {
+                        string color = room.Teams[player.PlayerId];
+                        string teamGroupName = $"{room.GameId}_{color}";
+
+                        await Groups.AddToGroupAsync(connectionId, teamGroupName);
+                    }
+                }
+
+                room.PiecePermissions = new Dictionary<string, List<char>>();
+
+                if (room.Mode == GameMode.TeamConsensus)
+                {
+                    var whiteTeam = room.Players.Where(p => room.Teams[p.PlayerId] == "w").ToList();
+                    var blackTeam = room.Players.Where(p => room.Teams[p.PlayerId] == "b").ToList();
+
+                    GameHelper.AssignShards(whiteTeam, room.PiecePermissions);
+                    GameHelper.AssignShards(blackTeam, room.PiecePermissions);
+                }
+
+
+                room.Fen = _chessLogic.GetInitialFen();
+                room.LastMoveAt = DateTime.UtcNow;
                 await _gameManager.UpdateGameAsync(room);
 
                 var startMsg = new GameStartMessage
@@ -254,13 +283,22 @@ namespace ChessBackend.Hubs
 
             await Groups.AddToGroupAsync(Context.ConnectionId, msg.GameId);
 
+            if (room.Teams.TryGetValue(playerId, out string? myColor))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"{msg.GameId}_{myColor}");
+            }
+
             var stateMsg = new GameStateMessage
             {
                 GameId = room.GameId,
                 Players = currentPlayers.ToList(),
-
                 Fen = room.Fen,
-                Teams = room.Teams ?? new Dictionary<string, string>() // Evita null
+                Teams = room.Teams ?? new Dictionary<string, string>(),
+                LastMoveAt = room.LastMoveAt,
+
+                Mode = room.Mode,
+                PiecePermissions = room.PiecePermissions ?? new Dictionary<string, List<char>>(),
+                ActiveProposals = room.ActiveProposals ?? new List<MoveProposal>()
             };
 
             await Clients.Caller.ReceiveGameState(stateMsg);

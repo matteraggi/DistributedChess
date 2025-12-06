@@ -1,12 +1,13 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { SignalRService } from '../../services/SignalRService .service';
-import { GameRoomDTO, PlayerDTO } from '../../models/dtos';
+import { GameMode, GameRoomDTO, PlayerDTO } from '../../models/dtos';
 
 @Component({
   selector: 'app-lobby',
   standalone: true,
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './lobby.html',
   styleUrls: ['./lobby.sass']
 })
@@ -14,6 +15,11 @@ export class LobbyPage implements OnInit {
 
   players = signal<PlayerDTO[]>([]);
   games = signal<GameRoomDTO[]>([]);
+  isModalOpen = signal(false);
+  newGameName = "Partita_" + Math.floor(Math.random() * 1000);
+  selectedMode: GameMode = GameMode.Classic1v1;
+  teamSize = 1;
+  eGameMode = GameMode;
 
   constructor(private ws: SignalRService, private router: Router) { }
 
@@ -55,9 +61,28 @@ export class LobbyPage implements OnInit {
     await this.ws.joinLobby(randomName);
   }
 
-  async createGame() {
-    const gameName = "Partita_" + Math.floor(Math.random() * 10000);
-    await this.ws.createGame(gameName);
+  openCreateModal() {
+    this.newGameName = "Partita_" + Math.floor(Math.random() * 1000);
+    this.isModalOpen.set(true);
+  }
+
+  closeModal() {
+    this.isModalOpen.set(false);
+  }
+
+  async confirmCreate() {
+    // Validazione base
+    if (this.teamSize < 1) this.teamSize = 1;
+
+    // Se team size > 1, forziamo la modalità TeamConsensus
+    if (this.teamSize > 1) {
+      this.selectedMode = GameMode.TeamConsensus;
+    } else {
+      this.selectedMode = GameMode.Classic1v1;
+    }
+
+    await this.ws.createGame(this.newGameName, this.selectedMode, this.teamSize);
+    this.closeModal();
   }
 
   async joinGame(gameId: string) {

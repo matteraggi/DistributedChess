@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chess } from 'chess.js'; // Importiamo la logica
 import { SignalRService } from '../../services/SignalRService .service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MoveProposal } from '../../models/dtos';
 
 
 @Component({
@@ -12,7 +13,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   templateUrl: './board.html',
   styleUrls: ['./board.sass']
 })
-export class Board implements OnInit {
+export class Board implements OnInit, OnDestroy {
 
   gameId: string = '';
   chess = new Chess(); // istanza di chess.js
@@ -21,6 +22,17 @@ export class Board implements OnInit {
   selectedSquare: string | null = null;
   isFlipped = false;
   private hasLeft = false;
+  possibleMoves: string[] = [];
+  activeProposals: MoveProposal[] = [];
+  myPermissions: string[] = [];
+  myTeamProposals: MoveProposal[] = [];
+  teamsMap: { [key: string]: string } = {};
+  lastMoveAt: number = Date.now();
+  readonly TURN_DURATION = 60;
+  now: number = Date.now();
+  private timerInterval: any;
+  toastMessage: string | null = null;
+  private toastTimeout: any;
 
   pieceImages: { [key: string]: string } = {
     'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg', // Nero
@@ -38,20 +50,33 @@ export class Board implements OnInit {
     'K': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
   };
 
+  pieceNames: { [key: string]: string } = {
+    'P': 'Pedoni',
+    'N': 'Cavalli',
+    'B': 'Alfieri',
+    'R': 'Torri',
+    'Q': 'Regina',
+    'K': 'Re'
+  };
+
   constructor(private route: ActivatedRoute, private ws: SignalRService, private router: Router) { }
 
   async ngOnInit() {
     this.gameId = this.route.snapshot.paramMap.get('id')!;
     await this.ws.startConnection();
 
+    this.timerInterval = setInterval(() => {
+      this.now = Date.now();
+    }, 100);
+
     this.ws.moveMade$.subscribe(msg => {
       if (msg.gameId !== this.gameId) return;
 
-      // Aggiorna la logica interna con la mossa arrivata e la FEN
       try {
         this.chess.load(msg.fen);
         this.updateBoard();
         this.selectedSquare = null;
+        this.lastMoveAt = Date.now();
       } catch (e) {
         console.error("Errore sincronizzazione FEN", e);
       }
@@ -61,12 +86,41 @@ export class Board implements OnInit {
       if (msg.gameId !== this.gameId) return;
 
       this.chess.load(msg.fen);
+      this.determineMyColor(msg.teams);
+      this.activeProposals = msg.activeProposals || [];
+      this.teamsMap = msg.teams;
+      this.filterProposals();
+      const myId = this.ws.getOrCreatePlayerId();
+      if (msg.piecePermission && msg.piecePermission[myId]) {
+        this.myPermissions = msg.piecePermission[myId];
+      } else {
+        this.myPermissions = [];
+      }
+      this.isFlipped = this.myColor === 'b';
+      if (msg.lastMoveAt) {
+        this.lastMoveAt = new Date(msg.lastMoveAt).getTime();
+      }
+      this.updateBoard();
+    });
+
+    this.ws.activeProposals$.subscribe(msg => {
+      if (msg.gameId !== this.gameId) return;
+      console.log("Proposte aggiornate:", msg.proposals);
+      this.activeProposals = msg.proposals;
+      this.filterProposals();
+    });
+
+    // 3. Gestione Mossa Eseguita
+    this.ws.moveMade$.subscribe(msg => {
+      if (msg.gameId !== this.gameId) return;
+
+      this.chess.load(msg.fen);
       this.updateBoard();
 
-      // Determina colore dalla mappa
-      this.determineMyColor(msg.teams);
-      this.isFlipped = this.myColor === 'b';
-      this.updateBoard();
+      this.selectedSquare = null;
+      this.lastMoveAt = Date.now();
+      this.possibleMoves = [];
+      // Nota: activeProposals verrà pulito dal messaggio activeProposals$ che arriverà subito dopo
     });
 
     this.ws.gameOver$.subscribe(msg => {
@@ -85,6 +139,22 @@ export class Board implements OnInit {
     });
 
     await this.ws.requestGameState(this.gameId);
+  }
+
+  ngOnDestroy() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+  }
+
+  showToast(message: string) {
+    this.toastMessage = message;
+
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage = null;
+    }, 3000);
   }
 
   updateBoard() {
@@ -110,64 +180,161 @@ export class Board implements OnInit {
     }
   }
 
+  getPermissionNames(): string {
+    if (!this.myPermissions || this.myPermissions.length === 0) return 'Tutti';
+    return this.myPermissions.map(p => this.pieceNames[p] || p).join(', ');
+  }
+
+  isMyPieceLocked(piece: any): boolean {
+    if (!piece) return false;
+
+    if (piece.color !== this.myColor) return false;
+
+    if (this.myColor === 'spectator') return false;
+
+    if (this.myPermissions.length > 0) {
+      const typeUpper = piece.type.toUpperCase();
+      return !this.myPermissions.includes(typeUpper);
+    }
+
+    return false;
+  }
+
+  getGlobalTimerPercentage(): number {
+    const deadline = this.lastMoveAt + (this.TURN_DURATION * 1000);
+    const diff = deadline - this.now;
+    const percentage = (diff / (this.TURN_DURATION * 1000)) * 100;
+    return Math.max(0, Math.min(100, percentage));
+  }
+
+  getGlobalTimerSeconds(): number {
+    const deadline = this.lastMoveAt + (this.TURN_DURATION * 1000);
+    const diff = deadline - this.now;
+    return Math.max(0, Math.ceil(diff / 1000));
+  }
+
+  filterProposals() {
+    const myId = this.ws.getOrCreatePlayerId();
+    const myTeamColor = this.teamsMap[myId]; // 'w' o 'b'
+
+    if (!myTeamColor) {
+      this.myTeamProposals = [];
+      return;
+    }
+
+    this.myTeamProposals = this.activeProposals.filter(p => {
+      const proposerColor = this.teamsMap[p.proposerId];
+      return proposerColor === myTeamColor;
+    });
+  }
 
   // Gestione click utente
   onSquareClick(rowIndex: number, colIndex: number) {
-    // 1. Ottieni la coordinata reale considerando la rotazione
     const square = this.getSquareNotation(rowIndex, colIndex) as any;
-
-    // 2. Ottieni il pezzo logico dalla libreria chess
     const piece = this.chess.get(square);
 
-    if (piece) {
-      // Blocco 1: È il mio pezzo?
-      if (this.myColor !== 'spectator' && piece.color !== this.myColor) {
-        if (!this.selectedSquare) return;
-      }
+    if (piece && (!this.selectedSquare || piece.color === this.myColor)) {
 
-      if (!this.selectedSquare && this.chess.turn() !== this.myColor) {
-        console.warn("Non è il tuo turno!");
+      if (piece.color !== this.myColor) {
         return;
       }
 
-      if (piece.color === this.myColor) {
-        this.selectedSquare = square;
+      if (this.chess.turn() !== this.myColor) {
+        console.log("Non è il tuo turno");
         return;
       }
+
+      if (this.myPermissions.length > 0) {
+        const pieceChar = piece.type.toUpperCase();
+        if (!this.myPermissions.includes(pieceChar)) {
+          this.showToast(`🚫 Non è un tuo pezzo!`);
+
+          this.selectedSquare = null;
+          this.possibleMoves = [];
+          return;
+        }
+      }
+
+      this.selectedSquare = square;
+      const moves = this.chess.moves({ square: square, verbose: true });
+      this.possibleMoves = moves.map((m: any) => m.to);
+      return;
     }
 
     if (this.selectedSquare) {
-      this.tryMove(this.selectedSquare, square);
+      if (this.possibleMoves.includes(square)) {
+        this.tryMove(this.selectedSquare, square);
+      } else {
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+      }
     }
   }
 
 
   async tryMove(from: string, to: string) {
-    // 1. Tentativo Locale (Optimistic UI)
     try {
-      const move = this.chess.move({ from, to, promotion: 'q' });
+      const piece = this.chess.get(from as any);
 
-      if (move) {
-        this.updateBoard();
-        this.selectedSquare = null;
-
-        // 2. Invio al Server
-        await this.ws.makeMove(this.gameId, from, to, 'q');
-      }
-    } catch (e) {
-      console.error("Errore mossa:", e);
-
-      // rollback (controllare se funziona)
-      if (this.chess.history().length > 0) {
-        const lastMove = this.chess.history({ verbose: true }).pop();
-        if (lastMove && lastMove.from === from && lastMove.to === to) {
-          this.chess.undo();
-          this.updateBoard();
-          alert("Mossa rifiutata dal server (Desync). La scacchiera è stata ripristinata.");
+      // Controllo Sharding lato client (UX)
+      // Se myPermissions è popolato, devo controllare se il pezzo è nella lista
+      if (this.myPermissions.length > 0 && piece) {
+        const typeUpper = piece.type.toUpperCase();
+        if (!this.myPermissions.includes(typeUpper)) {
+          alert(`Non puoi muovere questo pezzo! I tuoi permessi: ${this.myPermissions.join(', ')}`);
+          this.selectedSquare = null;
+          this.possibleMoves = [];
+          return;
         }
       }
-      this.selectedSquare = null;
+
+      const moves = this.chess.moves({ verbose: true });
+      const isLegal = moves.some((m: any) => m.from === from && m.to === to);
+
+      if (isLegal) {
+        // Invia PROPOSTA invece di mossa diretta
+        await this.ws.proposeMove(this.gameId, from, to, 'q');
+
+        // Feedback utente
+        console.log("Proposta inviata!");
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+      }
+    } catch (e) {
+      console.error(e);
     }
+  }
+
+  // Azione Voto
+  async voteFor(proposalId: string) {
+    await this.ws.voteMove(this.gameId, proposalId, true);
+  }
+
+  // Helper per vedere se ho già votato
+  hasVotedFor(prop: MoveProposal): boolean {
+    const myId = this.ws.getOrCreatePlayerId();
+    return prop.votes.includes(myId);
+  }
+
+  isPossibleMove(rowIndex: number, colIndex: number): boolean {
+    const square = this.getSquareNotation(rowIndex, colIndex);
+    return this.possibleMoves.includes(square);
+  }
+
+  // Ritorna TRUE se posso toccare questo pezzo
+  canControlPiece(piece: any): boolean {
+    if (!piece) return false;
+
+    // 1. Controllo Colore
+    if (this.myColor === 'spectator' || piece.color !== this.myColor) return false;
+
+    // 2. Controllo Sharding (Permessi)
+    if (this.myPermissions.length > 0) {
+      const typeUpper = piece.type.toUpperCase();
+      if (!this.myPermissions.includes(typeUpper)) return false;
+    }
+
+    return true;
   }
 
   private determineMyColor(teams: { [key: string]: string }) {

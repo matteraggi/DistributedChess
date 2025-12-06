@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { DeletedGameMessage, GameCreatedMessage, GameStartMessage, GameStateMessage, LobbyStateMessage, PlayerJoinedGameMessage, PlayerJoinedLobbyMessage, PlayerLeftGameMessage, PlayerLeftLobbyMessage, PlayerReadyStatusMessage, MakeMoveMessage, MoveMadeMessage, GameOverMessage } from '../models/dtos';
+import { DeletedGameMessage, GameCreatedMessage, GameStartMessage, GameStateMessage, LobbyStateMessage, PlayerJoinedGameMessage, PlayerJoinedLobbyMessage, PlayerLeftGameMessage, PlayerLeftLobbyMessage, PlayerReadyStatusMessage, MakeMoveMessage, MoveMadeMessage, GameOverMessage, ActiveProposalsUpdateMessage, ProposeMoveMessage, VoteMessage, GameMode } from '../models/dtos';
 
 @Injectable({ providedIn: 'root' })
 export class SignalRService implements OnDestroy {
@@ -22,6 +22,8 @@ export class SignalRService implements OnDestroy {
     public gameStart$ = new Subject<GameStartMessage>();
     public moveMade$ = new Subject<MoveMadeMessage>();
     public gameOver$ = new Subject<GameOverMessage>();
+    public activeProposals$ = new Subject<ActiveProposalsUpdateMessage>();
+    public proposalRejected$ = new Subject<any>();
 
     constructor() { }
 
@@ -99,6 +101,14 @@ export class SignalRService implements OnDestroy {
             this.gameOver$.next(data);
         });
 
+        this.hubConnection.on('ActiveProposalsUpdate', (data: ActiveProposalsUpdateMessage) => {
+            this.activeProposals$.next(data);
+        });
+
+        this.hubConnection.on('ProposalRejected', (data: any) => {
+            this.proposalRejected$.next(data);
+        });
+
         try {
             await this.hubConnection.start();
             console.log('SignalR Connected!');
@@ -126,12 +136,14 @@ export class SignalRService implements OnDestroy {
         }
     }
 
-    public async createGame(gameName: string) {
+    public async createGame(gameName: string, mode: GameMode, teamSize: number) {
         if (!this.hubConnection) return;
 
         await this.hubConnection.invoke('CreateGame', {
             gameName: gameName,
-            playerId: this.getOrCreatePlayerId()
+            playerId: this.getOrCreatePlayerId(),
+            mode: mode,
+            teamSize: teamSize
         });
     }
 
@@ -178,6 +190,26 @@ export class SignalRService implements OnDestroy {
             from,
             to,
             promotion
+        });
+    }
+
+    public async proposeMove(gameId: string, from: string, to: string, promotion: string = '') {
+        if (!this.hubConnection) return;
+        await this.hubConnection.invoke('ProposeMove', {
+            gameId,
+            playerId: this.getOrCreatePlayerId(),
+            from,
+            to,
+            promotion
+        });
+    }
+
+    public async voteMove(gameId: string, proposalId: string, isApproved: boolean = true) {
+        if (!this.hubConnection) return;
+        await this.hubConnection.invoke('VoteMove', {
+            gameId,
+            proposalId,
+            isApproved // true = Voto per questa proposta
         });
     }
 

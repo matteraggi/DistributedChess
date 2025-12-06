@@ -23,5 +23,6 @@ namespace Shared.Interfaces
         Task MakeMove(MakeMoveMessage msg);
         Task MoveMade(MoveMadeMessage msg);
         Task GameOver(GameOverMessage msg);
+        Task ActiveProposalsUpdate(ActiveProposalsUpdateMessage msg);
     }
 }

@@ -22,6 +22,13 @@ export interface PlayerJoinedLobbyMessage {
     playerName: string;
 }
 
+export interface CreateGameMessage {
+    gameName: string;
+    playerId: string;
+    mode: GameMode;
+    teamSize: number;
+}
+
 export interface GameCreatedMessage {
     gameId: string;
     gameName: string;
@@ -52,6 +59,10 @@ export interface GameStateMessage {
     players: PlayerDTO[];
     fen: string;
     teams: { [key: string]: string };
+    lastMoveAt: string;
+    mode: GameMode;
+    piecePermission: { [key: string]: string[] }; // Mappa ID -> Array di char ['P', 'K']
+    activeProposals: MoveProposal[];
 }
 
 export interface PlayerLeftGameMessage {
@@ -102,4 +113,49 @@ export interface GameOverMessage {
     gameId: string;
     winnerPlayerId: string | null;
     reason: string; // es: "checkmate", "stalemate", "resignation", etc.
+}
+
+export enum GameMode {
+    Classic1v1 = 0,
+    TeamConsensus = 1
+}
+
+export interface MoveProposal {
+    proposalId: string;
+    proposerId: string;
+    from: string;
+    to: string;
+    promotion: string;
+    votes: string[];
+    createdAt: string;
+}
+
+export interface ActiveProposalsUpdateMessage {
+    gameId: string;
+    proposals: MoveProposal[];
+}
+
+export interface ProposalResultMessage {
+    gameId: string;
+    proposalId: string;
+    isAccepted: boolean;
+    reason: string;
+}
+export interface JoinGameMessage {
+    gameId: string;
+    playerId: string;
+}
+
+export interface ProposeMoveMessage {
+    gameId: string;
+    playerId: string;
+    from: string;
+    to: string;
+    promotion: string;
+}
+
+export interface VoteMessage {
+    gameId: string;
+    proposalId: string;
+    isApproved: boolean;
 }
