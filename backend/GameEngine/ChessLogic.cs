@@ -62,5 +62,24 @@ namespace GameEngine
             var game = new ChessGame(fen);
             return game.IsStalemated(game.CurrentPlayer);
         }
+
+        public char? GetPieceTypeAt(string fen, string square)
+        {
+            try
+            {
+                var game = new ChessGame(fen);
+                // ChessDotNet usa coordinate "e2".
+                var piece = game.GetPieceAt(new Position(square));
+                if (piece == null) return null;
+
+                // Restituisce il carattere FEN (es. 'P', 'k', 'q'...)
+                // Nota: ChessDotNet usa enum, dobbiamo convertirlo in char standard FEN
+                return piece.GetFenCharacter();
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

@@ -21,5 +21,8 @@ namespace Shared.Messages
 
         [JsonPropertyName("activeProposal")]
         public List<MoveProposal> ActiveProposals { get; set; } = new();
+        [JsonPropertyName("lastMoveAt")]
+        public DateTime LastMoveAt { get; set; }
+
     }
 }

@@ -7,65 +7,39 @@ namespace ChessBackend.Hubs
 {
     public partial class GameHub
     {
-        public async Task MakeMove(MakeMoveMessage msg)
+        private async Task ExecuteMoveInternal(GameRoom room, MoveProposal prop)
         {
-            string playerId;
-            if (Context.Items.TryGetValue("PlayerId", out var pidObj) && pidObj is string pid)
-                playerId = pid;
-            else
-                playerId = msg.PlayerId;
-
-            var room = await _gameManager.GetGameAsync(msg.GameId);
-            if (room == null) throw new HubException("Game not found");
-
-            // Chiediamo all'Engine di chi è il turno guardando la FEN
-            char turnColor = _chessLogic.GetTurnColor(room.Fen); // 'w'
-
-            if (room.Teams.TryGetValue(playerId, out string? playerColor) && playerColor != null)
+            if (!_chessLogic.TryMakeMove(room.Fen, prop.From, prop.To, out string newFen))
             {
-                if (playerColor[0] != turnColor)
-                {
-                    throw new HubException("Not your turn!");
-                }
-            }
-            else
-            {
-                throw new HubException("You are not playing in this match!");
+                // Se siamo qui, i client hanno raggiunto il consenso su una mossa illegale.
+                // Blocchiamo tutto per sicurezza.
+                throw new HubException("Security Alert: Consensus reached on an illegal move!");
             }
 
-            // L'Engine ci dirà se è valida e ci darà la nuova FEN.
-            if (!_chessLogic.TryMakeMove(room.Fen, msg.From, msg.To, out string newFen))
-            {
-                throw new HubException("Illigal move!");
-            }
-
-            room.Fen = newFen; // La nuova scacchiera
-
-            await _gameManager.UpdateGameAsync(room);
+            room.Fen = newFen;
+            room.LastMoveAt = DateTime.UtcNow;
 
             var moveMadeMsg = new MoveMadeMessage
             {
                 GameId = room.GameId,
-                PlayerId = playerId,
-                From = msg.From,
-                To = msg.To,
+                PlayerId = prop.ProposerId,
+                From = prop.From,
+                To = prop.To,
                 Fen = newFen
             };
 
-            await Clients.Group(msg.GameId).MoveMade(moveMadeMsg);
+            await Clients.Group(room.GameId).MoveMade(moveMadeMsg);
 
             if (_chessLogic.IsCheckmate(newFen))
             {
                 var gameOverMsg = new GameOverMessage
                 {
                     GameId = room.GameId,
-                    WinnerPlayerId = playerId,
+                    WinnerPlayerId = prop.ProposerId,
                     Reason = "Checkmate"
                 };
 
-                await Clients.Group(msg.GameId).GameOver(gameOverMsg);
-
-                //await _gameManager.RemoveGameAsync(room.GameId); 
+                await Clients.Group(room.GameId).GameOver(gameOverMsg);
             }
             else if (_chessLogic.IsStalemate(newFen))
             {

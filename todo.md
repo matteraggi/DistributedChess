@@ -1,12 +1,15 @@
 Roadmap - struttura hybrid P2P
 
+TODO:
+!!! Segnalare quando non si può controllare un pezzo e far funzionare la grafica per pezzi non controllabili (più opaca)
+
 Fase 1: Aggiornamento Modelli Dati (Shared)
 Obiettivo: Preparare le strutture dati per supportare squadre, ruoli specifici e il ciclo di vita del voto.
 
 Ristrutturazione GameRoom:
 - [x] Aggiungere GameMode (enum: Classic1v1, TeamConsensus)
 - [x] Aggiungere mappa PiecePermissions (es. PlayerA -> ['P', 'K'] per Pedoni/Re)
-- [ ] Aggiungere oggetto CurrentProposal (null se idle, popolato se c'è una votazione in corso)
+- [x] Aggiungere oggetto ActiveProposals (null se idle, popolato se c'è una votazione in corso)
 
 Nuovi DTO (Messaggi):
 - [x] CreateGameMessage: Aggiungere opzioni per modalità e numero giocatori
@@ -20,20 +23,10 @@ Obiettivo: Il Backend smette di essere l'unico decisore e diventa un gestore di 
 Invece durante la lobby fa ovviamente ancora tutto lui.
 
 Aggiornamento CreateGame:
-- [ ] Implementare logica di assegnazione ruoli (Sharding)
+- [x] Implementare logica di assegnazione ruoli (Sharding)
 Esempio: Se 2v2, Giocatore 1 prende Pedoni/Regina, Giocatore 2 prende gli altri pezzi
-- [ ] Implementazione Ciclo di Consenso (GameHub.Voting.cs):
-OPZ 1: più p2p ma meno consistenza:
-Step 1 (propose): Client A invia proposta. Server fa broadcast a tutti.
-Step 2 (vote): Client B invia voto. Server fa broadcast del voto a tutti ("B ha votato Sì").
-Step 3 (count, Lato Client): Ogni Client (A, B, C, D) tiene il conto locale dei voti ricevuti:
-    Quando il Client A vede che c'è la maggioranza -> Esegue la mossa localmente.
-    Quando il Client B vede la maggioranza -> Esegue la mossa localmente.
-    Save: Il server ascolta passivamente e quando vede la maggioranza salva su Redis solo per backup.
-Problema: Se un pacchetto si perde, A muove il pezzo e B no. La partita si desincronizza.
-Per risolvere questo servirebbe un protocollo complesso (Paxos/Raft).
-
-OPZ 2: meno p2p ma consistenza forte
+- [x] Aggiungere implementazione per n giocatori
+- [x] Implementazione Ciclo di Consenso (GameHub.Voting.cs):
 Step 1: Propose: Riceve proposta -> Verifica possesso pezzi (Sharding) -> Salva su Redis -> Broadcast agli altri
 Step 2: Collect Votes: Riceve voti -> Aggiorna conteggio su Redis -> Verifica quorum (Maggioranza)
 Step 3: Commit/Reject: Se passa -> Esegue mossa (aggiorna FEN) -> Notifica tutti. Se fallisce -> Pulisce stato
@@ -68,3 +61,7 @@ Test Sicurezza (Defense in Depth):
 Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità.
 
 Fase 5: Documentazione Esame
+
+
+EXTRA:
+- [ ] rimuovere stato ready ogni volta che si esce dalla lobby di gioco

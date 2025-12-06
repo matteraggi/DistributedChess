@@ -1,54 +1,107 @@
-<div class="board-container">
+<div class="game-layout">
 
-    <!-- HEADER INFO -->
-    <div class="game-info">
-        <h1>Partita: {{ gameId }}</h1>
-        <div class="status-box">
-            <p>Tu sei: <strong [style.color]="myColor === 'w' ? 'orange' : (myColor === 'b' ? 'black' : 'gray')">
-                    {{ myColor === 'w' ? 'BIANCO' : (myColor === 'b' ? 'NERO' : 'SPETTATORE') }}
-                </strong></p>
+    <div class="board-container">
 
-            <p class="turn-indicator" [class.my-turn]="chess.turn() === myColor">
-                Turno:
-                <strong>{{ chess.turn() === 'w' ? 'Bianco' : 'Nero' }}</strong>
-                @if(chess.turn() === myColor){
-                <span> (Tocca a te!)</span>
-                }
-            </p>
+        <div class="timer-header">
+            <div class="timer-info">
+                <span>Tempo Turno</span>
+                <span [class.text-danger]="getGlobalTimerSeconds() <= 10">
+                    ⏱️ {{ getGlobalTimerSeconds() }}s
+                </span>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="getGlobalTimerPercentage()"
+                    [class.urgent]="getGlobalTimerSeconds() <= 10">
+                </div>
+            </div>
         </div>
-        <button (click)="goBack()">Torna alla Lobby</button>
-    </div>
+        <!-- HEADER INFO -->
+        <div class="game-info">
+            <h1>Partita: {{ gameId }}</h1>
+            <div class="status-box">
+                <p>Tu sei: <strong [style.color]="myColor === 'w' ? 'orange' : (myColor === 'b' ? 'black' : 'gray')">
+                        {{ myColor === 'w' ? 'BIANCO' : (myColor === 'b' ? 'NERO' : 'SPETTATORE') }}
+                    </strong></p>
 
-    <div class="chessboard">
-        @for (row of board; track $index; let r = $index) {
-        <div class="row">
-            @for (square of row; track $index; let c = $index) {
+                <p class="turn-indicator" [class.my-turn]="chess.turn() === myColor">
+                    Turno:
+                    <strong>{{ chess.turn() === 'w' ? 'Bianco' : 'Nero' }}</strong>
+                    @if(chess.turn() === myColor){
+                    <span> (Tocca a te!)</span>
+                    }
+                </p>
+            </div>
+            <button (click)="goBack()">Torna alla Lobby</button>
+        </div>
 
-            <!-- Nota: square qui è l'oggetto grafico {type: 'p', color: 'w'} o null -->
+        <div class="chessboard">
+            @for (row of board; track $index; let r = $index) {
+            <div class="row">
+                @for (square of row; track $index; let c = $index) {
 
-            <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
-                [class.selected]="selectedSquare === getSquareNotation(r, c)" [class.valid-move]="isPossibleMove(r, c)"
-                (click)="onSquareClick(r, c)">
+                <!-- Nota: square qui è l'oggetto grafico {type: 'p', color: 'w'} o null -->
 
-                @if (square) {
-                <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]" class="piece">
-                }
+                <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
+                    [class.selected]="selectedSquare === getSquareNotation(r, c)"
+                    [class.valid-move]="isPossibleMove(r, c)" (click)="onSquareClick(r, c)">
 
-                <!-- Coordinate visive (opzionali) -->
-                @if(c === 0){
-                <span class="coord"> {{ isFlipped ? (r + 1) : (8 - r) }}</span>
-                }
-                @else if (r===7) {
-                <span class="coord-file"> {{ isFlipped ? ['h','g','f','e','d','c','b','a'][c] :
-                    ['a','b','c','d','e','f','g','h'][c] }}</span>
-                }
+                    @if (square) {
+                    <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]"
+                        class="piece" [class.locked-piece]="!canControlPiece(square)">
+                    }
 
-                @if (isPossibleMove(r, c)) {
-                <div class="hint-dot"></div>
+                    <!-- Coordinate visive (opzionali) -->
+                    @if(c === 0){
+                    <span class="coord"> {{ isFlipped ? (r + 1) : (8 - r) }}</span>
+                    }
+                    @else if (r===7) {
+                    <span class="coord-file"> {{ isFlipped ? ['h','g','f','e','d','c','b','a'][c] :
+                        ['a','b','c','d','e','f','g','h'][c] }}</span>
+                    }
+
+                    @if (isPossibleMove(r, c)) {
+                    <div class="hint-dot"></div>
+                    }
+                </div>
                 }
             </div>
             }
         </div>
-        }
     </div>
+    <!-- DESTRA: Pannello Votazioni -->
+    <div class="sidebar">
+        <h3>Votazioni in Corso</h3>
+
+        @if (activeProposals.length === 0) {
+        <p class="empty-state">Nessuna proposta attiva.</p>
+        } @else {
+        <div class="proposals-list">
+            @for (prop of myTeamProposals; track prop.proposalId) {
+            <div class="proposal-card" [class.voted]="hasVotedFor(prop)">
+                <div class="prop-header">
+                    <strong>{{ prop.from }} ➜ {{ prop.to }}</strong>
+                    <span class="vote-count">Voti: {{ prop.votes.length }}</span>
+                </div>
+
+                <div class="prop-actions">
+                    @if (!hasVotedFor(prop)) {
+                    <button (click)="voteFor(prop.proposalId)" class="btn-vote">
+                        ✅ Vota
+                    </button>
+                    } @else {
+                    <span class="voted-badge">Hai votato</span>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+        }
+
+        <!-- Debug Info -->
+        <div class="debug-perms" *ngIf="myPermissions.length > 0">
+            <small>I tuoi pezzi: {{ myPermissions.join(', ') }}</small>
+        </div>
+    </div>
+
 </div>
