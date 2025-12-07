@@ -215,3 +215,17 @@
     display: inline-block
     font-size: 0.9em
     border: 1px solid #bbdefb
+
+.square.prop-from
+    background-color: rgba(255, 235, 59, 0.7) !important // Giallo forte
+
+.square.prop-to
+    background-color: rgba(76, 175, 80, 0.7) !important // Verde forte
+    
+    &::after
+        content: '🎯'
+        position: absolute
+        top: 5px
+        right: 5px
+        font-size: 12px
+        pointer-events: none

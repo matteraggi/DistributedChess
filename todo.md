@@ -31,7 +31,6 @@ Step 3: Commit/Reject: Se passa -> Esegue mossa (aggiorna FEN) -> Notifica tutti
 
 Fault Tolerance (Resilienza):
 - [x] Implementare un Timeout Votazione: Se il quorum non viene raggiunto entro X secondi (es. nodo disconnesso), la proposta scade o viene rigettata automaticamente
-- [ ] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
 
 Fase 3: Frontend con logica
 Obiettivo: Il Client diventa un nodo attivo che partecipa alla validazione, non solo un visualizzatore
@@ -59,5 +58,6 @@ Verificare che il Backend blocchi comunque una mossa illegale anche se il team (
 Fase 5: Documentazione Esame
 
 
-EXTRA:
+bugfix:
 - [ ] rimuovere stato ready ogni volta che si esce dalla lobby di gioco
+- [ ] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)

@@ -34,6 +34,7 @@ export class Board implements OnInit, OnDestroy {
   toastMessage: string | null = null;
   private toastTimeout: any;
   illegalProposals = new Set<string>();
+  hoveredProposalId: string | null = null;
 
   pieceImages: { [key: string]: string } = {
     'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
@@ -243,6 +244,28 @@ export class Board implements OnInit, OnDestroy {
         return false;
       }
     });
+  }
+
+  onProposalHover(proposalId: string) {
+    this.hoveredProposalId = proposalId;
+  }
+
+  onProposalLeave() {
+    this.hoveredProposalId = null;
+  }
+
+  isProposalHighlight(rowIndex: number, colIndex: number, type: 'from' | 'to'): boolean {
+    if (!this.hoveredProposalId) return false;
+
+    const prop = this.myTeamProposals.find(p => p.proposalId === this.hoveredProposalId);
+    if (!prop) return false;
+
+    const square = this.getSquareNotation(rowIndex, colIndex);
+
+    if (type === 'from') return square === prop.from;
+    if (type === 'to') return square === prop.to;
+
+    return false;
   }
 
   onSquareClick(rowIndex: number, colIndex: number) {

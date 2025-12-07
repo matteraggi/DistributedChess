@@ -56,7 +56,8 @@
 
                 <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
                     [class.selected]="selectedSquare === getSquareNotation(r, c)"
-                    [class.valid-move]="isPossibleMove(r, c)" (click)="onSquareClick(r, c)">
+                    [class.valid-move]="isPossibleMove(r, c)" [class.prop-from]="isProposalHighlight(r, c, 'from')"
+                    [class.prop-to]="isProposalHighlight(r, c, 'to')" (click)="onSquareClick(r, c)">
 
                     @if (square) {
                     <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]"
@@ -91,7 +92,8 @@
         <div class="proposals-list">
             @for (prop of myTeamProposals; track prop.proposalId) {
 
-            <div class="proposal-card" [class.voted]="hasVotedFor(prop)">
+            <div class="proposal-card" [class.voted]="hasVotedFor(prop)" (mouseenter)="onProposalHover(prop.proposalId)"
+                (mouseleave)="onProposalLeave()">
                 <div class="prop-header">
                     <strong>{{ prop.from }} ➜ {{ prop.to }}</strong>
                     <span class="vote-count">Voti: {{ prop.votes.length }}</span>
