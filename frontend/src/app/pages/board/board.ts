@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chess } from 'chess.js'; // Importiamo la logica
+import { Chess } from 'chess.js';
 import { SignalRService } from '../../services/SignalRService .service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MoveProposal } from '../../models/dtos';
@@ -16,8 +16,8 @@ import { MoveProposal } from '../../models/dtos';
 export class Board implements OnInit, OnDestroy {
 
   gameId: string = '';
-  chess = new Chess(); // istanza di chess.js
-  board: any[][] = []; // Matrice 8x8 per la grafica
+  chess = new Chess();
+  board: any[][] = [];
   myColor: 'w' | 'b' | 'spectator' = 'spectator';
   selectedSquare: string | null = null;
   isFlipped = false;
@@ -33,16 +33,17 @@ export class Board implements OnInit, OnDestroy {
   private timerInterval: any;
   toastMessage: string | null = null;
   private toastTimeout: any;
+  illegalProposals = new Set<string>();
 
   pieceImages: { [key: string]: string } = {
-    'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg', // Nero
+    'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
     'r': 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg',
     'n': 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg',
     'b': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg',
     'q': 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg',
     'k': 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg',
 
-    'P': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg', // Bianco
+    'P': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg',
     'R': 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
     'N': 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg',
     'B': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
@@ -110,7 +111,6 @@ export class Board implements OnInit, OnDestroy {
       this.filterProposals();
     });
 
-    // 3. Gestione Mossa Eseguita
     this.ws.moveMade$.subscribe(msg => {
       if (msg.gameId !== this.gameId) return;
 
@@ -120,7 +120,6 @@ export class Board implements OnInit, OnDestroy {
       this.selectedSquare = null;
       this.lastMoveAt = Date.now();
       this.possibleMoves = [];
-      // Nota: activeProposals verrà pulito dal messaggio activeProposals$ che arriverà subito dopo
     });
 
     this.ws.gameOver$.subscribe(msg => {
@@ -172,8 +171,6 @@ export class Board implements OnInit, OnDestroy {
     const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
     if (this.isFlipped) {
-      // Se girata: riga 0 visiva è Rank 1 ('1'), colonna 0 visiva è File h ('h')
-      // Quindi dobbiamo invertire gli indici
       return (files[7 - c] + ranks[7 - r]);
     } else {
       return (files[c] + ranks[r]);
@@ -215,20 +212,39 @@ export class Board implements OnInit, OnDestroy {
 
   filterProposals() {
     const myId = this.ws.getOrCreatePlayerId();
-    const myTeamColor = this.teamsMap[myId]; // 'w' o 'b'
+    const myTeamColor = this.teamsMap[myId];
 
     if (!myTeamColor) {
       this.myTeamProposals = [];
       return;
     }
 
-    this.myTeamProposals = this.activeProposals.filter(p => {
+    let candidates = this.activeProposals.filter(p => {
       const proposerColor = this.teamsMap[p.proposerId];
       return proposerColor === myTeamColor;
     });
+
+    this.myTeamProposals = candidates.filter(prop => {
+      if (prop.proposerId === myId) return true;
+      if (prop.votes.includes(myId)) return true;
+
+      const ghostEngine = new Chess();
+      try {
+        ghostEngine.load(this.chess.fen());
+
+        const moveResult = ghostEngine.move({
+          from: prop.from,
+          to: prop.to,
+          promotion: prop.promotion || undefined
+        });
+
+        return !!moveResult;
+      } catch (e) {
+        return false;
+      }
+    });
   }
 
-  // Gestione click utente
   onSquareClick(rowIndex: number, colIndex: number) {
     const square = this.getSquareNotation(rowIndex, colIndex) as any;
     const piece = this.chess.get(square);
@@ -275,9 +291,6 @@ export class Board implements OnInit, OnDestroy {
   async tryMove(from: string, to: string) {
     try {
       const piece = this.chess.get(from as any);
-
-      // Controllo Sharding lato client (UX)
-      // Se myPermissions è popolato, devo controllare se il pezzo è nella lista
       if (this.myPermissions.length > 0 && piece) {
         const typeUpper = piece.type.toUpperCase();
         if (!this.myPermissions.includes(typeUpper)) {
@@ -292,10 +305,8 @@ export class Board implements OnInit, OnDestroy {
       const isLegal = moves.some((m: any) => m.from === from && m.to === to);
 
       if (isLegal) {
-        // Invia PROPOSTA invece di mossa diretta
         await this.ws.proposeMove(this.gameId, from, to, 'q');
 
-        // Feedback utente
         console.log("Proposta inviata!");
         this.selectedSquare = null;
         this.possibleMoves = [];
@@ -305,12 +316,10 @@ export class Board implements OnInit, OnDestroy {
     }
   }
 
-  // Azione Voto
   async voteFor(proposalId: string) {
     await this.ws.voteMove(this.gameId, proposalId, true);
   }
 
-  // Helper per vedere se ho già votato
   hasVotedFor(prop: MoveProposal): boolean {
     const myId = this.ws.getOrCreatePlayerId();
     return prop.votes.includes(myId);
@@ -321,14 +330,11 @@ export class Board implements OnInit, OnDestroy {
     return this.possibleMoves.includes(square);
   }
 
-  // Ritorna TRUE se posso toccare questo pezzo
   canControlPiece(piece: any): boolean {
     if (!piece) return false;
 
-    // 1. Controllo Colore
     if (this.myColor === 'spectator' || piece.color !== this.myColor) return false;
 
-    // 2. Controllo Sharding (Permessi)
     if (this.myPermissions.length > 0) {
       const typeUpper = piece.type.toUpperCase();
       if (!this.myPermissions.includes(typeUpper)) return false;
@@ -344,7 +350,6 @@ export class Board implements OnInit, OnDestroy {
     console.log("Mio ID Locale:", myId);
     console.log("Lista Squadre dal Server:", teams);
 
-    // Controllo difensivo se teams è null/undefined
     if (!teams) {
       console.error("ERRORE: Il server non ha mandato la mappa 'teams'!");
       this.myColor = 'spectator';
@@ -352,7 +357,6 @@ export class Board implements OnInit, OnDestroy {
       return;
     }
 
-    // Cerchiamo l'ID nella mappa
     if (teams[myId]) {
       this.myColor = teams[myId] as 'w' | 'b';
       console.log("✅ TROVATO! Il mio colore è:", this.myColor);
@@ -360,7 +364,6 @@ export class Board implements OnInit, OnDestroy {
       this.myColor = 'spectator';
       console.warn("❌ NON TROVATO. Sono Spettatore. (Il mio ID non è nella lista)");
 
-      // Debug avanzato: controlliamo se c'è un match parziale (es. case sensitivity)
       const keys = Object.keys(teams);
       const match = keys.find(k => k.toLowerCase() === myId.toLowerCase());
       if (match) {
@@ -369,7 +372,6 @@ export class Board implements OnInit, OnDestroy {
     }
     console.groupEnd();
 
-    // Aggiorna indicatori
     this.isFlipped = this.myColor === 'b';
   }
 
