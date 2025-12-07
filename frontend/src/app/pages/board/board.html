@@ -90,6 +90,7 @@
         } @else {
         <div class="proposals-list">
             @for (prop of myTeamProposals; track prop.proposalId) {
+
             <div class="proposal-card" [class.voted]="hasVotedFor(prop)">
                 <div class="prop-header">
                     <strong>{{ prop.from }} ➜ {{ prop.to }}</strong>
@@ -106,6 +107,7 @@
                     }
                 </div>
             </div>
+
             }
         </div>
         }
