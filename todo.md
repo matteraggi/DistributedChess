@@ -41,10 +41,10 @@ Aggiornamento BoardComponent:
 
 Interfaccia di Voto:
 - [x] Bottoni Voto, visibili solo ai compagni di squadra
-- [ ] Creare UI "Proposta in arrivo": Quando un compagno propone, mostrare una freccia sulla scacchiera (visualizzazione mossa)
+- [x] Creare UI "Proposta in arrivo": Quando un compagno propone, mostrare una freccia sulla scacchiera (visualizzazione mossa)
 
 Fase 4: Testing Distribuito e Validazione (fault test)
-Obiettivo: Verificare che il sistema si comporti come un sistema distribuito.
+- [ ] Obiettivo: Verificare che il sistema si comporti come un sistema distribuito.
 
 Test Consenso:
 Scenario: 3 giocatori in team. 1 propone, 1 vota sì, 1 vota no. La mossa passa? (Logica maggioranza).
@@ -55,7 +55,7 @@ Scenario: 1 giocatore propone e chiude il browser. La partita si sblocca dopo il
 Test Sicurezza (Defense in Depth):
 Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità.
 
-Fase 5: Documentazione Esame
+- [ ] design su figma e implementare
 
 
 bugfix:
