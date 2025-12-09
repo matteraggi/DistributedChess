@@ -53,7 +53,9 @@ export class LobbyPage implements OnInit {
 
     this.ws.playerJoinedGame$.subscribe(msg => {
       if (msg.playerId === this.ws.getOrCreatePlayerId()) {
-        this.router.navigate(['/game', msg.gameId]);
+        this.router.navigate(['/game', msg.gameId], {
+          state: { maxPlayers: msg.capacity }
+        });
       }
     });
 

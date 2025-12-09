@@ -47,6 +47,7 @@ export interface PlayerJoinedGameMessage {
     gameId: string;
     playerId: string;
     playerName: string;
+    capacity?: number;
 }
 
 export interface RequestGameStateMessage {
@@ -63,6 +64,7 @@ export interface GameStateMessage {
     mode: GameMode;
     piecePermission: { [key: string]: string[] }; // Mappa ID -> Array di char ['P', 'K']
     activeProposals: MoveProposal[];
+    capacity: number;
 }
 
 export interface PlayerLeftGameMessage {

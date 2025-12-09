@@ -43,7 +43,8 @@ namespace ChessBackend.Hubs
             {
                 GameId = room.GameId,
                 PlayerId = playerId,
-                PlayerName = player.PlayerName
+                PlayerName = player.PlayerName,
+                Capacity = room.Capacity
             };
 
             await Clients.Group(msg.GameId).PlayerJoinedGame(joinedMsg);
@@ -84,7 +85,8 @@ namespace ChessBackend.Hubs
             {
                 GameId = room.GameId,
                 PlayerId = playerId,
-                PlayerName = player.PlayerName
+                PlayerName = player.PlayerName,
+                Capacity = room.Capacity
             };
             await Clients.Caller.PlayerJoinedGame(joinedMsg);
 
@@ -298,7 +300,8 @@ namespace ChessBackend.Hubs
 
                 Mode = room.Mode,
                 PiecePermissions = room.PiecePermissions ?? new Dictionary<string, List<char>>(),
-                ActiveProposals = room.ActiveProposals ?? new List<MoveProposal>()
+                ActiveProposals = room.ActiveProposals ?? new List<MoveProposal>(),
+                Capacity = room.Capacity
             };
 
             await Clients.Caller.ReceiveGameState(stateMsg);
