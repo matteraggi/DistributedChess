@@ -1,3 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Alata&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alatsi&display=swap');
+$light: #B85C38
+$dark: #6C1E21 
+$bg-cream: #FFF8F0
+$border-color: #E6CCB2
+
 .lobby-container
     padding: 20px
     max-width: 800px
@@ -8,9 +15,90 @@
     gap: 20px
     margin-top: 20px
 
+
+.title-wrapper
+    display: flex
+    flex-direction: column
+    width: 100%
+    max-width: 650px
+    margin: 0 auto
+    padding-bottom: 30px
+
+.game-title
+    font-family: 'Alata', sans-serif
+    font-weight: 400
+    font-size: 80px
+    letter-spacing: 0.02em
+    color: $dark
+    
+    margin: 0
+    line-height: 0.9
+    white-space: nowrap
+
+.align-left
+    align-self: flex-start
+
+.align-right
+    align-self: flex-end
+
+.hero-image-container
+  display: flex
+  justify-content: center
+  align-items: center
+  width: 100%
+
+.chess-illustration
+    width: 100%
+    max-width: 400px 
+    height: auto
+    display: block
+
+.actions-row
+  display: flex
+  justify-content: center
+  gap: 140px
+  margin-top: 50px
+  width: 100%
+
+.btn-action
+  background-color: $light
+  color: $dark 
+  border: none
+  border-radius: 12px
+  padding: 15px 40px
+  font-family: 'Alatsi', sans-serif
+  font-size: 30px
+  letter-spacing: 1px
+  cursor: pointer
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15)
+  transition: transform 0.2s ease, background-color 0.2s
+
+  .text-white
+    color: #ffffff
+    font-weight: normal
+    margin-left: 5px
+
+  .text-brown
+    color: $dark
+    font-weight: normal
+
+  &:hover
+    transform: translateY(-3px)
+    background-color: lighten($light, 5%)
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2)
+
+.footer
+  display: flex
+  justify-content: center
+  margin-top: 50px
+  width: 100%
+  color: #6d6d6dff
+  font-family: 'Alata', sans-serif
+  font-size: 16px
+
 .panel
     flex: 1
-    border: 1px solid #ccc
+    border: 1px solid #3f2929ff
     padding: 15px
     border-radius: 8px
     background: #f9f9f9
@@ -21,7 +109,6 @@
     padding: 8px 0
     border-bottom: 1px solid #eee
 
-// --- STILE MODALE ---
 .modal-overlay
     position: fixed
     top: 0
@@ -75,3 +162,184 @@
     padding: 10px 20px
     border-radius: 4px
     cursor: pointer
+
+
+.modal-overlay
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  height: 100%
+  background: rgba($dark, 0.6)
+  backdrop-filter: blur(4px)
+  display: flex
+  justify-content: center
+  align-items: center
+  z-index: 1000
+  animation: fadeIn 0.3s ease
+
+.modal-content
+  background: $bg-cream
+  padding: 30px
+  border-radius: 20px
+  width: 90%
+  max-width: 450px
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3)
+  border: 2px solid $dark
+  color: $dark
+  display: flex
+  flex-direction: column
+  animation: slideUp 0.3s ease
+
+.modal-title
+  font-family: 'Alata', sans-serif
+  color: $dark
+  margin-top: 0
+  margin-bottom: 25px
+  text-align: center
+  font-size: 28px
+  text-transform: uppercase
+  letter-spacing: 1px
+
+.form-group
+  margin-bottom: 20px
+  display: flex
+  flex-direction: column
+
+  label
+    font-weight: bold
+    margin-bottom: 8px
+    font-family: 'Alata', sans-serif
+    font-size: 14px
+
+  .input-theme
+    padding: 12px 15px
+    border: 2px solid $border-color
+    border-radius: 10px
+    background: white
+    font-size: 16px
+    color: $dark
+    font-family: 'Montserrat', sans-serif
+    transition: border-color 0.2s
+    
+    &:focus
+      outline: none
+      border-color: $light
+
+  .mode-description
+    margin-top: 8px
+    font-size: 13px
+    opacity: 0.8
+    background: rgba($light, 0.1)
+    padding: 8px
+    border-radius: 6px
+
+.join-list-container
+  max-height: 300px
+  overflow-y: auto
+  margin-bottom: 20px
+  border: 1px solid $border-color
+  border-radius: 10px
+  background: white
+  padding: 5px
+
+  &::-webkit-scrollbar
+    width: 6px
+  &::-webkit-scrollbar-track
+    background: #f1f1f1
+  &::-webkit-scrollbar-thumb
+    background: $border-color
+    border-radius: 3px
+
+.empty-state
+  padding: 30px
+  text-align: center
+  font-style: italic
+  color: lighten($dark, 20%)
+
+.game-list
+  list-style: none
+  padding: 0
+  margin: 0
+
+  li
+    display: flex
+    justify-content: space-between
+    align-items: center
+    padding: 12px 15px
+    border-bottom: 1px solid lighten($border-color, 10%)
+    transition: background 0.2s
+
+    &:last-child
+      border-bottom: none
+
+    &:hover
+      background: rgba($light, 0.05)
+
+    .game-name
+      font-weight: bold
+      font-size: 16px
+
+.modal-actions
+  display: flex
+  justify-content: flex-end
+  gap: 15px
+  margin-top: 10px
+
+.btn-primary
+  background: $light
+  color: white
+  border: none
+  padding: 12px 25px
+  border-radius: 8px
+  font-weight: bold
+  cursor: pointer
+  font-family: 'Alata', sans-serif
+  transition: background 0.2s
+  
+  &:hover
+    background: darken($light, 5%)
+
+.btn-secondary
+  background: transparent
+  color: $dark
+  border: 2px solid $dark
+  padding: 10px 20px
+  border-radius: 8px
+  font-weight: bold
+  cursor: pointer
+  font-family: 'Alata', sans-serif
+  transition: all 0.2s
+
+  &:hover
+    background: $dark
+    color: $bg-cream
+
+.btn-small-join
+  background: $dark
+  color: white
+  border: none
+  padding: 6px 14px
+  border-radius: 6px
+  font-size: 12px
+  font-weight: bold
+  cursor: pointer
+  text-transform: uppercase
+  transition: background 0.2s
+
+  &:hover
+    background: $light
+
+@keyframes slideUp
+  from
+    opacity: 0
+    transform: translateY(20px)
+  to
+    opacity: 1
+    transform: translateY(0)
+
+@keyframes fadeIn
+  from
+    opacity: 0
+  to
+    opacity: 1

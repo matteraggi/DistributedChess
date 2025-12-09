@@ -1,60 +1,76 @@
 <div class="lobby-container">
-    <h1>Scacchi Distribuiti - Lobby</h1>
+    <div class="title-wrapper">
+        <h1 class="game-title align-left">CHESS</h1>
 
-    <div class="actions">
-        <button class="btn-primary" (click)="openCreateModal()">+ Crea Nuova Partita</button>
+        <h1 class="game-title align-right">TEAM BATTLE</h1>
+    </div>
+    <div class="hero-image-container">
+        <img src="./distributed-chess-logo.png" alt="DistributedChess Logo" class="chess-illustration">
     </div>
 
-    <div class="content">
-        <section class="panel">
-            <h2>Partite Disponibili</h2>
-            @if (games().length === 0) {
-            <p>Nessuna partita attiva.</p>
-            }
-            <ul class="game-list">
-                @for (g of games(); track g.gameId) {
-                <li>
-                    <span>{{ g.gameName }}</span>
-                    <button (click)="joinGame(g.gameId)">Entra</button>
-                </li>
-                }
-            </ul>
-        </section>
-
-        <section class="panel players-panel">
-            <h2>Giocatori Online ({{ players().length }})</h2>
-            <ul>
-                @for (p of players(); track p.playerId) {
-                <li>{{ p.playerName }}</li>
-                }
-            </ul>
-        </section>
+    <div class="actions-row">
+        <button class="btn-action" (click)="openJoinGameModal()"><span class="text-brown">JOIN </span><span
+                class="text-white">GAME</span></button>
+        <button class="btn-action" (click)="openCreateGameModal()"><span class="text-brown">CREATE </span><span
+                class="text-white">GAME</span></button>
     </div>
+
+    <span class="footer">Copyright 2025 - Chess Team Battle</span>
 </div>
-
-<!-- MODALE DI CREAZIONE -->
-@if (isModalOpen()) {
-<div class="modal-overlay" (click)="closeModal()">
+@if (isCreateGameModalOpen()) {
+<div class="modal-overlay" (click)="closeCreateGameModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
-        <h2>Configura Partita</h2>
+        <h2 class="modal-title">Configura Partita</h2>
 
         <div class="form-group">
             <label>Nome Stanza</label>
-            <input type="text" [(ngModel)]="newGameName">
+            <input type="text" [(ngModel)]="newGameName" class="input-theme" placeholder="Es. Partita Epica">
         </div>
 
         <div class="form-group">
             <label>Giocatori per Squadra</label>
-            <input type="number" min="1" max="4" [(ngModel)]="teamSize">
-            <small>
-                @if (teamSize === 1) { Modalità: 1 vs 1 (Classica) }
-                @else { Modalità: {{ teamSize }} vs {{ teamSize }} (Voto di Squadra) }
-            </small>
+            <input type="number" min="1" max="4" [(ngModel)]="teamSize" class="input-theme">
+            <div class="mode-description">
+                @if (teamSize === 1) {
+                <strong>Modalità:</strong> 1 vs 1 (Classica)
+                } @else {
+                <strong>Modalità:</strong> {{ teamSize }} vs {{ teamSize }} (Voto di Squadra)
+                }
+            </div>
         </div>
 
         <div class="modal-actions">
-            <button (click)="closeModal()" class="btn-secondary">Annulla</button>
+            <button (click)="closeCreateGameModal()" class="btn-secondary">Annulla</button>
             <button (click)="confirmCreate()" class="btn-primary">Crea</button>
+        </div>
+    </div>
+</div>
+}
+
+@if (isJoinGameModalOpen()) {
+<div class="modal-overlay" (click)="closeJoinGameModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2 class="modal-title">Unisciti alla Battaglia</h2>
+
+        <div class="join-list-container">
+            @if (games().length === 0) {
+            <div class="empty-state">
+                <p>Nessuna partita attiva al momento.</p>
+            </div>
+            } @else {
+            <ul class="game-list">
+                @for (g of games(); track g.gameId) {
+                <li>
+                    <span class="game-name">{{ g.gameName }}</span>
+                    <button class="btn-small-join" (click)="joinGame(g.gameId)">ENTRA</button>
+                </li>
+                }
+            </ul>
+            }
+        </div>
+
+        <div class="modal-actions">
+            <button (click)="closeJoinGameModal()" class="btn-secondary">Chiudi</button>
         </div>
     </div>
 </div>
