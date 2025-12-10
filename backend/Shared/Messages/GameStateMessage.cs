@@ -23,6 +23,8 @@ namespace Shared.Messages
         public List<MoveProposal> ActiveProposals { get; set; } = new();
         [JsonPropertyName("lastMoveAt")]
         public DateTime LastMoveAt { get; set; }
+        [JsonPropertyName("capacity")]
+        public int Capacity { get; set; } = 2;
 
     }
 }

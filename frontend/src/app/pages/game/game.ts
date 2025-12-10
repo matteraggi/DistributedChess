@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, effect } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayerDTO } from '../../models/dtos';
 import { SignalRService } from '../../services/SignalRService .service';
@@ -7,11 +7,12 @@ import { SignalRService } from '../../services/SignalRService .service';
   selector: 'app-game',
   standalone: true,
   templateUrl: './game.html',
-  styleUrls: ['./game.sass']
+  styleUrls: ['./game.scss']
 })
 export class Game implements OnInit {
 
   gameId!: string;
+  capacity = signal<number>(2);
 
   players = signal<PlayerDTO[]>([]);
   readyPlayers = signal<Set<string>>(new Set());
@@ -26,6 +27,12 @@ export class Game implements OnInit {
     private ws: SignalRService
   ) {
     this.myPlayerId = this.ws.getOrCreatePlayerId();
+    const nav = this.router.currentNavigation();
+    const state = nav?.extras.state as { capacity: number };
+
+    if (state && state.capacity) {
+      this.capacity.set(state.capacity);
+    }
   }
 
   async ngOnInit() {
@@ -39,7 +46,7 @@ export class Game implements OnInit {
           index === self.findIndex(t => t.playerId === p.playerId)
       );
       this.players.set(uniquePlayers);
-
+      this.capacity.set(msg.capacity);
       const initialReadySet = new Set<string>();
       msg.players.forEach(p => {
         if (p.isReady) {
@@ -117,6 +124,13 @@ export class Game implements OnInit {
     this.sendLeaveOnce();
     this.router.navigate(['/lobby']);
   }
+
+  readyPercentage = computed(() => {
+    const total = this.players().length;
+    if (total === 0) return 0;
+    const ready = this.readyPlayers().size;
+    return (ready / total) * 100;
+  });
 
   /* 
   Per evitare che ricaricando la pagina il giocatore non trovi più il gioco essendo stato eliminato

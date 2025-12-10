@@ -9,17 +9,17 @@ import { GameMode, GameRoomDTO, PlayerDTO } from '../../models/dtos';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './lobby.html',
-  styleUrls: ['./lobby.sass']
+  styleUrls: ['./lobby.scss']
 })
 export class LobbyPage implements OnInit {
 
   players = signal<PlayerDTO[]>([]);
   games = signal<GameRoomDTO[]>([]);
-  isModalOpen = signal(false);
+  isCreateGameModalOpen = signal(false);
+  isJoinGameModalOpen = signal(false);
   newGameName = "Partita_" + Math.floor(Math.random() * 1000);
   selectedMode: GameMode = GameMode.Classic1v1;
   teamSize = 1;
-  eGameMode = GameMode;
 
   constructor(private ws: SignalRService, private router: Router) { }
 
@@ -53,7 +53,9 @@ export class LobbyPage implements OnInit {
 
     this.ws.playerJoinedGame$.subscribe(msg => {
       if (msg.playerId === this.ws.getOrCreatePlayerId()) {
-        this.router.navigate(['/game', msg.gameId]);
+        this.router.navigate(['/game', msg.gameId], {
+          state: { maxPlayers: msg.capacity }
+        });
       }
     });
 
@@ -61,13 +63,21 @@ export class LobbyPage implements OnInit {
     await this.ws.joinLobby(randomName);
   }
 
-  openCreateModal() {
+  openCreateGameModal() {
     this.newGameName = "Partita_" + Math.floor(Math.random() * 1000);
-    this.isModalOpen.set(true);
+    this.isCreateGameModalOpen.set(true);
   }
 
-  closeModal() {
-    this.isModalOpen.set(false);
+  closeCreateGameModal() {
+    this.isCreateGameModalOpen.set(false);
+  }
+
+  openJoinGameModal() {
+    this.isJoinGameModalOpen.set(true);
+  }
+
+  closeJoinGameModal() {
+    this.isJoinGameModalOpen.set(false);
   }
 
   async confirmCreate() {
@@ -82,7 +92,7 @@ export class LobbyPage implements OnInit {
     }
 
     await this.ws.createGame(this.newGameName, this.selectedMode, this.teamSize);
-    this.closeModal();
+    this.closeCreateGameModal();
   }
 
   async joinGame(gameId: string) {

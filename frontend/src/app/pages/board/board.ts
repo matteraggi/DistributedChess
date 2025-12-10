@@ -11,7 +11,7 @@ import { MoveProposal } from '../../models/dtos';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './board.html',
-  styleUrls: ['./board.sass']
+  styleUrls: ['./board.scss']
 })
 export class Board implements OnInit, OnDestroy {
 
@@ -34,6 +34,7 @@ export class Board implements OnInit, OnDestroy {
   toastMessage: string | null = null;
   private toastTimeout: any;
   illegalProposals = new Set<string>();
+  hoveredProposalId: string | null = null;
 
   pieceImages: { [key: string]: string } = {
     'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
@@ -51,15 +52,14 @@ export class Board implements OnInit, OnDestroy {
     'K': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
   };
 
-  pieceNames: { [key: string]: string } = {
-    'P': 'Pedoni',
-    'N': 'Cavalli',
-    'B': 'Alfieri',
-    'R': 'Torri',
-    'Q': 'Regina',
-    'K': 'Re'
+  pieceSymbols: { [key: string]: string } = {
+    'P': '♟',
+    'N': '♞',
+    'B': '♝',
+    'R': '♜',
+    'Q': '♛',
+    'K': '♚'
   };
-
   constructor(private route: ActivatedRoute, private ws: SignalRService, private router: Router) { }
 
   async ngOnInit() {
@@ -177,9 +177,14 @@ export class Board implements OnInit, OnDestroy {
     }
   }
 
-  getPermissionNames(): string {
-    if (!this.myPermissions || this.myPermissions.length === 0) return 'Tutti';
-    return this.myPermissions.map(p => this.pieceNames[p] || p).join(', ');
+  getPermissionIcons(): string {
+    if (!this.myPermissions || this.myPermissions.length === 0) {
+      return '∞';
+    }
+
+    return this.myPermissions
+      .map(p => this.pieceSymbols[p.toUpperCase()] || p)
+      .join(' ');
   }
 
   isMyPieceLocked(piece: any): boolean {
@@ -243,6 +248,28 @@ export class Board implements OnInit, OnDestroy {
         return false;
       }
     });
+  }
+
+  onProposalHover(proposalId: string) {
+    this.hoveredProposalId = proposalId;
+  }
+
+  onProposalLeave() {
+    this.hoveredProposalId = null;
+  }
+
+  isProposalHighlight(rowIndex: number, colIndex: number, type: 'from' | 'to'): boolean {
+    if (!this.hoveredProposalId) return false;
+
+    const prop = this.myTeamProposals.find(p => p.proposalId === this.hoveredProposalId);
+    if (!prop) return false;
+
+    const square = this.getSquareNotation(rowIndex, colIndex);
+
+    if (type === 'from') return square === prop.from;
+    if (type === 'to') return square === prop.to;
+
+    return false;
   }
 
   onSquareClick(rowIndex: number, colIndex: number) {

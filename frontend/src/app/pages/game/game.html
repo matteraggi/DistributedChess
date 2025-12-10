@@ -1,19 +1,79 @@
-<!-- src/app/pages/game/game.html -->
-<button (click)="goBack()">Back and delete game</button>
-<h1>Game Page</h1>
-<p>Game: {{ gameId }}</p>
+<header class="game-header">
+    <img (click)="goBack()" src="./home.svg" alt="Homepage">
+    <h1>Game Name</h1>
+</header>
+<p class="game-id">#{{ gameId }}</p>
+<div class="game-page">
+    <div class="player-count-badge">
+        {{ players().length }}/{{ capacity() }}
+    </div>
+    <div class="game-layout">
 
-<button (click)="toggleReady()">{{ amIReady() ? 'Not Ready' : 'Ready' }}</button>
+        <div class="content-grid">
 
-<h3>Players:</h3>
-<ul>
-    @for (p of players(); track p.playerId) {
-    <li>
-        {{ p.playerName }}
-        <span [style.color]="readyPlayers().has(p.playerId) ? 'green' : 'red'">
-            {{ readyPlayers().has(p.playerId) ? '✔️' : '❌' }}
-        </span>
-    </li>
+            <div class="players-section">
+                <div class="scrollable-list">
+                    @for (p of players(); track p.playerId) {
+                    <div class="player-card" [class.card-ready]="readyPlayers().has(p.playerId)"
+                        [class.card-not-ready]="!readyPlayers().has(p.playerId)">
 
-    }
-</ul>
+                        <div class="card-info">
+                            <span class="name">{{ p.playerName }}</span>
+                        </div>
+
+                        <div class="status-icon">
+                            @if (readyPlayers().has(p.playerId)) {
+                            <svg viewBox="0 0 24 24" class="icon-svg">
+                                <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                            </svg>
+                            } @else {
+                            <svg viewBox="0 0 24 24" class="icon-svg">
+                                <path fill="currentColor"
+                                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                            </svg>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <div class="illustration-section">
+                <div class="liquid-container">
+                    <svg viewBox="0 0 100 130" class="chess-gauge">
+                        <defs>
+                            <path id="chess-piece-shape"
+                                d="M50,10 C40,10 35,18 35,25 C35,30 40,32 42,33 C38,50 35,80 25,95 L25,105 L75,105 L75,95 C65,80 62,50 58,33 C60,32 65,30 65,25 C65,18 60,10 50,10 Z M50,0 L50,10 M45,10 L55,10" />
+
+                            <clipPath id="liquid-mask">
+                                <use href="#chess-piece-shape" />
+                            </clipPath>
+                        </defs>
+
+                        <use href="#chess-piece-shape" class="piece-bg" />
+
+                        <g clip-path="url(#liquid-mask)">
+
+                            <g class="liquid-level"
+                                [style.transform]="'translateY(' + (100 - readyPercentage()) + 'px)'">
+
+                                <path class="wave-motion"
+                                    d="M0,-10 C30,0 50,-20 80,-10 C110,0 130,-20 160,-10 V150 H0 Z" fill="#6C1E21" />
+                            </g>
+                        </g>
+
+                        <use href="#chess-piece-shape" class="piece-border" />
+                    </svg>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="action-footer">
+            <button class="btn-ready-large" (click)="toggleReady()">
+                {{ amIReady() ? 'NOT READY' : 'READY' }}
+            </button>
+        </div>
+
+    </div>
+</div>

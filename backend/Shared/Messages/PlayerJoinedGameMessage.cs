@@ -12,4 +12,6 @@ public class PlayerJoinedGameMessage
 
     [JsonPropertyName("playerName")]
     public string PlayerName { get; set; } = "";
+    [JsonPropertyName("capacity")]
+    public int Capacity { get; set; } = 2;
 }
