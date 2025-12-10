@@ -7,7 +7,7 @@ import { SignalRService } from '../../services/SignalRService .service';
   selector: 'app-game',
   standalone: true,
   templateUrl: './game.html',
-  styleUrls: ['./game.sass']
+  styleUrls: ['./game.scss']
 })
 export class Game implements OnInit {
 

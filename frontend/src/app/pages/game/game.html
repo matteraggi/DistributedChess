@@ -1,7 +1,8 @@
-<div class="game-header">
+<header class="game-header">
     <img (click)="goBack()" src="./home.svg" alt="Homepage">
-    <h1>Game: {{ gameId }}</h1>
-</div>
+    <h1>Game Name</h1>
+</header>
+<p class="game-id">#{{ gameId }}</p>
 <div class="game-page">
     <div class="player-count-badge">
         {{ players().length }}/{{ capacity() }}

@@ -9,7 +9,7 @@ import { GameMode, GameRoomDTO, PlayerDTO } from '../../models/dtos';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './lobby.html',
-  styleUrls: ['./lobby.sass']
+  styleUrls: ['./lobby.scss']
 })
 export class LobbyPage implements OnInit {
 

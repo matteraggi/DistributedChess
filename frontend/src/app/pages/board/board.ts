@@ -11,7 +11,7 @@ import { MoveProposal } from '../../models/dtos';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './board.html',
-  styleUrls: ['./board.sass']
+  styleUrls: ['./board.scss']
 })
 export class Board implements OnInit, OnDestroy {
 
@@ -52,15 +52,14 @@ export class Board implements OnInit, OnDestroy {
     'K': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
   };
 
-  pieceNames: { [key: string]: string } = {
-    'P': 'Pedoni',
-    'N': 'Cavalli',
-    'B': 'Alfieri',
-    'R': 'Torri',
-    'Q': 'Regina',
-    'K': 'Re'
+  pieceSymbols: { [key: string]: string } = {
+    'P': '♟',
+    'N': '♞',
+    'B': '♝',
+    'R': '♜',
+    'Q': '♛',
+    'K': '♚'
   };
-
   constructor(private route: ActivatedRoute, private ws: SignalRService, private router: Router) { }
 
   async ngOnInit() {
@@ -178,9 +177,14 @@ export class Board implements OnInit, OnDestroy {
     }
   }
 
-  getPermissionNames(): string {
-    if (!this.myPermissions || this.myPermissions.length === 0) return 'Tutti';
-    return this.myPermissions.map(p => this.pieceNames[p] || p).join(', ');
+  getPermissionIcons(): string {
+    if (!this.myPermissions || this.myPermissions.length === 0) {
+      return '∞';
+    }
+
+    return this.myPermissions
+      .map(p => this.pieceSymbols[p.toUpperCase()] || p)
+      .join(' ');
   }
 
   isMyPieceLocked(piece: any): boolean {

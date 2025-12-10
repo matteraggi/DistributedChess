@@ -1,118 +1,121 @@
-<div class="game-layout">
+<header class="game-header">
+    <img (click)="goBack()" src="./home.svg" alt="Homepage">
+    <h1>Game Name</h1>
+    <div class="game-id">
+        #{{ gameId }}
+    </div>
+</header>
 
-    <div class="board-container">
+<div class="main-wrapper">
 
-        @if (toastMessage) {
-        <div class="toast-notification">
-            {{ toastMessage }}
-        </div>
-        }
-
-        <div class="timer-header">
-            <div class="timer-info">
-                <span>Tempo Turno</span>
-                <span [class.text-danger]="getGlobalTimerSeconds() <= 10">
-                    ⏱️ {{ getGlobalTimerSeconds() }}s
-                </span>
+    <div class="timer-container">
+        <div class="timer-track">
+            <div class="timer-fill" [style.width.%]="getGlobalTimerPercentage()"
+                [class.urgent]="getGlobalTimerSeconds() <= 10">
+                <span class="timer-label">⏳ Timer ({{ getGlobalTimerSeconds() }}s)</span>
             </div>
+        </div>
+    </div>
 
-            <div class="progress-track">
-                <div class="progress-fill" [style.width.%]="getGlobalTimerPercentage()"
-                    [class.urgent]="getGlobalTimerSeconds() <= 10">
+    <div class="status-strip">
+        <div class="status-left">
+            @if(chess.turn() === myColor){
+            <span>▶ Your turn!</span>
+            } @else {
+            <span>✋︎ Opponent's turn!</span>
+            }
+        </div>
+
+        <div class="status-right">
+            @if (myPermissions.length > 0) {
+            <span>You can move: </span>
+            <span class="piece-icons">
+                {{ getPermissionIcons() }}
+            </span>
+            }
+        </div>
+    </div>
+
+    <div class="game-content">
+
+        <div class="board-section">
+
+            @if (toastMessage) {
+            <div class="toast-notification">
+                {{ toastMessage }}
+            </div>
+            }
+
+            <div class="chessboard">
+                @for (row of board; track $index; let r = $index) {
+                <div class="row">
+                    @for (square of row; track $index; let c = $index) {
+                    <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
+                        [class.selected]="selectedSquare === getSquareNotation(r, c)"
+                        [class.valid-move]="isPossibleMove(r, c)" [class.prop-from]="isProposalHighlight(r, c, 'from')"
+                        [class.prop-to]="isProposalHighlight(r, c, 'to')" (click)="onSquareClick(r, c)">
+
+                        @if (square) {
+                        <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]"
+                            class="piece" [class.locked-piece]="isMyPieceLocked(square)">
+                        }
+
+                        @if(c === 0){ <span class="coord"> {{ isFlipped ? (r + 1) : (8 - r) }}</span> }
+                        @else if (r===7) { <span class="coord-file"> {{ isFlipped ? ['h','g','f','e','d','c','b','a'][c]
+                            : ['a','b','c','d','e','f','g','h'][c] }}</span> }
+
+                        @if (isPossibleMove(r, c)) { <div class="hint-dot"></div> }
+                    </div>
+                    }
                 </div>
+                }
             </div>
         </div>
-        <!-- HEADER INFO -->
-        <div class="game-info">
-            <h1>Partita: {{ gameId }}</h1>
-            <div class="status-box">
-                <p>Tu sei: <strong [style.color]="myColor === 'w' ? 'orange' : (myColor === 'b' ? 'black' : 'gray')">
-                        {{ myColor === 'w' ? 'BIANCO' : (myColor === 'b' ? 'NERO' : 'SPETTATORE') }}
-                    </strong></p>
 
-                <p class="turn-indicator" [class.my-turn]="chess.turn() === myColor">
-                    Turno:
-                    <strong>{{ chess.turn() === 'w' ? 'Bianco' : 'Nero' }}</strong>
-                    @if(chess.turn() === myColor){
-                    <span> (Tocca a te!)</span>
-                    }
-                </p>
+        <div class="voting-section">
+
+            @if (activeProposals.length === 0) {
+            <div class="empty-state-card">
+                <p>Nessuna votazione attiva</p>
             </div>
-            <button (click)="goBack()">Torna alla Lobby</button>
-        </div>
+            } @else {
 
-        @if (myPermissions.length > 0) {
-        <div class="permissions-badge">
-            <p>👮 Puoi muovere solo: <strong>{{ getPermissionNames() }}</strong></p>
-        </div>
-        }
+            <div class="proposals-list">
+                @for (prop of myTeamProposals; track prop.proposalId) {
 
-        <div class="chessboard">
-            @for (row of board; track $index; let r = $index) {
-            <div class="row">
-                @for (square of row; track $index; let c = $index) {
+                <div class="vote-card" [class.card-voted]="hasVotedFor(prop)" [class.card-to-vote]="!hasVotedFor(prop)"
+                    (mouseenter)="onProposalHover(prop.proposalId)" (mouseleave)="onProposalLeave()">
 
-                <!-- Nota: square qui è l'oggetto grafico {type: 'p', color: 'w'} o null -->
-
-                <div class="square" [class.black]="isSquareBlack(r, c)" [class.white]="!isSquareBlack(r, c)"
-                    [class.selected]="selectedSquare === getSquareNotation(r, c)"
-                    [class.valid-move]="isPossibleMove(r, c)" [class.prop-from]="isProposalHighlight(r, c, 'from')"
-                    [class.prop-to]="isProposalHighlight(r, c, 'to')" (click)="onSquareClick(r, c)">
-
-                    @if (square) {
-                    <img [src]="pieceImages[square.color === 'w' ? square.type.toUpperCase() : square.type]"
-                        class="piece" [class.locked-piece]="isMyPieceLocked(square)">
+                    @if (hasVotedFor(prop)) {
+                    <div class="voted-content">
+                        <div class="voted-content-left">
+                            <div class="move-text">{{ prop.from }} ➝ {{ prop.to }}</div>
+                            <span class="voted-text">You voted</span>
+                        </div>
+                        <div class="vote-status">
+                            <span class="vote-number">{{ prop.votes.length }}</span>
+                            <span>VOTES</span>
+                        </div>
+                    </div>
                     }
 
-                    <!-- Coordinate visive (opzionali) -->
-                    @if(c === 0){
-                    <span class="coord"> {{ isFlipped ? (r + 1) : (8 - r) }}</span>
-                    }
-                    @else if (r===7) {
-                    <span class="coord-file"> {{ isFlipped ? ['h','g','f','e','d','c','b','a'][c] :
-                        ['a','b','c','d','e','f','g','h'][c] }}</span>
+                    @else {
+                    <div class="voted-content">
+                        <div class="voted-content-left">
+                            <span class="move-text">{{ prop.from }} ➝ {{ prop.to }}</span>
+                            <span class="small-votes">{{ prop.votes.length }} votes</span>
+                        </div>
+                        <button (click)="voteFor(prop.proposalId)" class="btn-vote-action">
+                            👍🏻 VOTE!
+                        </button>
+                    </div>
                     }
 
-                    @if (isPossibleMove(r, c)) {
-                    <div class="hint-dot"></div>
-                    }
                 </div>
                 }
             </div>
             }
         </div>
+
     </div>
-    <!-- DESTRA: Pannello Votazioni -->
-    <div class="sidebar">
-        <h3>Votazioni in Corso</h3>
-
-        @if (activeProposals.length === 0) {
-        <p class="empty-state">Nessuna proposta attiva.</p>
-        } @else {
-        <div class="proposals-list">
-            @for (prop of myTeamProposals; track prop.proposalId) {
-
-            <div class="proposal-card" [class.voted]="hasVotedFor(prop)" (mouseenter)="onProposalHover(prop.proposalId)"
-                (mouseleave)="onProposalLeave()">
-                <div class="prop-header">
-                    <strong>{{ prop.from }} ➜ {{ prop.to }}</strong>
-                    <span class="vote-count">Voti: {{ prop.votes.length }}</span>
-                </div>
-
-                <div class="prop-actions">
-                    @if (!hasVotedFor(prop)) {
-                    <button (click)="voteFor(prop.proposalId)" class="btn-vote">
-                        ✅ Vota
-                    </button>
-                    } @else {
-                    <span class="voted-badge">Hai votato</span>
-                    }
-                </div>
-            </div>
-
-            }
-        </div>
-        }
-    </div>
-
 </div>
