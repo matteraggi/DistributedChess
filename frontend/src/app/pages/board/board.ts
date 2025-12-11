@@ -27,7 +27,7 @@ export class Board implements OnInit, OnDestroy {
   myPermissions: string[] = [];
   myTeamProposals: MoveProposal[] = [];
   teamsMap: { [key: string]: string } = {};
-  lastMoveAt: number = Date.now();
+  lastMoveAt: number = 0;
   readonly TURN_DURATION = 60;
   now: number = Date.now();
   private timerInterval: any;
@@ -100,6 +100,7 @@ export class Board implements OnInit, OnDestroy {
       this.isFlipped = this.myColor === 'b';
       if (msg.lastMoveAt) {
         this.lastMoveAt = new Date(msg.lastMoveAt).getTime();
+        console.log("Timer sincronizzato:", this.lastMoveAt);
       }
       this.updateBoard();
     });
@@ -210,6 +211,7 @@ export class Board implements OnInit, OnDestroy {
   }
 
   getGlobalTimerSeconds(): number {
+    if (!this.lastMoveAt) return 60;
     const deadline = this.lastMoveAt + (this.TURN_DURATION * 1000);
     const diff = deadline - this.now;
     return Math.max(0, Math.ceil(diff / 1000));

@@ -68,17 +68,40 @@ namespace GameEngine
             try
             {
                 var game = new ChessGame(fen);
-                // ChessDotNet usa coordinate "e2".
                 var piece = game.GetPieceAt(new Position(square));
                 if (piece == null) return null;
 
-                // Restituisce il carattere FEN (es. 'P', 'k', 'q'...)
-                // Nota: ChessDotNet usa enum, dobbiamo convertirlo in char standard FEN
                 return piece.GetFenCharacter();
             }
             catch
             {
                 return null;
+            }
+        }
+
+        public bool GetRandomMove(string currentFen, out string from, out string to, out string newFen)
+        {
+            from = ""; to = ""; newFen = currentFen;
+            try
+            {
+                var game = new ChessGame(currentFen);
+                var possibleMoves = game.GetValidMoves(game.CurrentPlayer);
+
+                if (possibleMoves.Count == 0) return false;
+
+                var rnd = new Random();
+                var randomMove = possibleMoves[rnd.Next(possibleMoves.Count)];
+
+                game.MakeMove(randomMove, true);
+
+                from = randomMove.OriginalPosition.ToString();
+                to = randomMove.NewPosition.ToString();
+                newFen = game.GetFen();
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

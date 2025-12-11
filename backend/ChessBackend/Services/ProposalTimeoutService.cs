@@ -73,9 +73,23 @@ namespace ChessBackend.Services
             }
             else
             {
-                room.LastMoveAt = DateTime.UtcNow;
-                await _gameManager.UpdateGameAsync(room);
-                return;
+                _logger.LogWarning($"Nessuna proposta per partita {room.GameId}. Generazione mossa random.");
+
+                if (_chessLogic.GetRandomMove(room.Fen, out string rFrom, out string rTo, out string rNewFen))
+                {
+                    selectedProposal = new MoveProposal
+                    {
+                        ProposerId = "Server_Auto",
+                        From = rFrom,
+                        To = rTo
+                    };
+                }
+                else
+                {
+                    room.LastMoveAt = DateTime.UtcNow;
+                    await _gameManager.UpdateGameAsync(room);
+                    return;
+                }
             }
 
             if (selectedProposal != null)
