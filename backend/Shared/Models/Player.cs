@@ -4,7 +4,7 @@
     {
         public string PlayerId { get; set; } = "";     // socketId
         public string PlayerName { get; set; } = "";
-        public string SocketId { get; set; } = "";
+        public string ConnectionId { get; set; } = "";
         public bool IsReady { get; set; } = false;
 
         // Indica se il giocatore è dentro una partita

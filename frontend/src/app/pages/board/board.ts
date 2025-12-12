@@ -138,6 +138,12 @@ export class Board implements OnInit, OnDestroy {
       this.router.navigate(['/lobby']);
     });
 
+    this.ws.playerJoinedGame$.subscribe(msg => {
+      if (msg.gameId !== this.gameId) return;
+      console.log("Giocatore entrato, ricalcolo assetti...");
+      this.ws.requestGameState(this.gameId);
+    });
+
     await this.ws.requestGameState(this.gameId);
   }
 

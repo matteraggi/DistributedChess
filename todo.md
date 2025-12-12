@@ -44,21 +44,8 @@ Interfaccia di Voto:
 - [x] Creare UI "Proposta in arrivo": Quando un compagno propone, mostrare una freccia sulla scacchiera (visualizzazione mossa)
 
 Fase 4: FAULT TOLERANCE
-- [ ] Obiettivo: Verificare che il sistema si comporti come un sistema distribuito.
 
-- Tolleranza ai Guasti del BACKEND (Infrastruttura)
-Qui dimostri la potenza di Docker e Redis.
-Scenario C: Crash di un'istanza Backend
-Situazione: Hai 2 istanze backend (Porta 5000 e 5001). Il Giocatore A è su 5000, B su 5001. Il container sulla 5000 muore.
-Comportamento Atteso (Senza Load Balancer):
-Il Giocatore A vede "Disconnected". SignalR prova a riconnettersi (default: 0s, 2s, 10s, 30s).
-Se riavvii il container entro 30s, il Giocatore A si riconnette.
-Grazie a Redis, lo stato della partita non è perso! Appena si riconnette, chiede lo stato e torna in gioco.
-Comportamento Atteso (Con Nginx - Opzionale):
-Se avessi Nginx davanti, il Giocatore A verrebbe spostato automaticamente sulla 5001 senza accorgersene.
-Cosa dire al Prof: "La persistenza su Redis garantisce la Statelessness dei nodi di calcolo. Qualsiasi backend può servire qualsiasi utente in qualsiasi momento. Se un nodo cade, il client si riconnette a un altro nodo (o lo stesso riavviato) e recupera lo stato intatto."
-
-- [ ] gestione utente che abbandona una partita
+- [x] gestione utente che abbandona una partita
 L'ideale sarebbe:
 - dare i permessi dell'utente che è uscito ad un altro giocatore
 - rendere la partita, anche in corso, disponibile ad un utente dalla lobby
@@ -71,8 +58,11 @@ Test Sicurezza (Defense in Depth):
 - [x] design su figma e implementare
 
 bugfix:
+- [ ] quando un giocatore abbandona la partita/chiude il browser, toglierlo dai giocatori
+- [ ] non mostrare stanze piene
+- [ ] salvare proposte in qualche modo per riprenderle on reload (al momento scompaiono)
 - [ ] rimuovere stato ready ogni volta che si esce dalla lobby di gioco
-- [ ] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
+- [x] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
 
 extra: 
 - [ ] chat di gioco

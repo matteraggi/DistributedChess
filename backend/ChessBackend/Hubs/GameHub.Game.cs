@@ -29,15 +29,58 @@ namespace ChessBackend.Hubs
             var player = await _lobbyManager.GetPlayerAsync(playerId);
             if (player == null)
             {
-                throw new HubException("Player not in lobby");
+                player = new Player
+                {
+                    PlayerId = playerId,
+                    PlayerName = "Player " + (playerId.Length > 4 ? playerId[..4] : playerId)
+                };
+            }
+
+            player.ConnectionId = Context.ConnectionId;
+            player.CurrentGameId = room.GameId;
+
+            await _lobbyManager.AddOrUpdatePlayerAsync(player);
+
+            if (room.Players.Count >= room.Capacity)
+            {
+                throw new HubException("Game is full");
             }
 
             if (!room.Players.Any(p => p.PlayerId == playerId))
             {
                 await _gameManager.AddPlayerAsync(room.GameId, playerId, player.PlayerName);
+
+                room.Players.Add(new Player { PlayerId = playerId, PlayerName = player.PlayerName });
+            }
+
+            // se la partita è già iniziata, quindi sono già stati fatti i team
+            if (room.Teams.Count > 0)
+            {
+                // metterlo nel team con meno giocatori
+                int whiteCount = room.Teams.Values.Count(c => c == "w");
+                int blackCount = room.Teams.Values.Count(c => c == "b");
+
+                string assignedColor = (whiteCount <= blackCount) ? "w" : "b";
+                room.Teams[playerId] = assignedColor;
+
+                // ribilanciare permessi
+                if (room.Mode == GameMode.TeamConsensus)
+                {
+                    var teamMembers = room.Players
+                        .Where(p => room.Teams.ContainsKey(p.PlayerId) && room.Teams[p.PlayerId] == assignedColor)
+                        .ToList();
+
+                    GameHelper.AssignShards(teamMembers, room.PiecePermissions);
+                }
+
+                await _gameManager.UpdateGameAsync(room);
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, msg.GameId);
+            if (room.Teams.TryGetValue(playerId, out string? myColor))
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"{msg.GameId}_{myColor}");
+            }
 
             var joinedMsg = new PlayerJoinedGameMessage
             {
@@ -63,6 +106,18 @@ namespace ChessBackend.Hubs
                 Context.Items["PlayerId"] = playerId;
             }
 
+            var player = await _lobbyManager.GetPlayerAsync(playerId);
+            if (player == null) 
+            {
+                player = new Player
+                {
+                    PlayerId = playerId,
+                    PlayerName = "Player " + (playerId.Length > 4 ? playerId[..4] : playerId)
+                };
+            }
+
+            player.ConnectionId = Context.ConnectionId;
+
             var room = await _gameManager.CreateGameAsync(msg.GameName);
 
             room.Mode = msg.Mode;
@@ -71,11 +126,9 @@ namespace ChessBackend.Hubs
 
             await _gameManager.UpdateGameAsync(room);
 
-            var player = await _lobbyManager.GetPlayerAsync(playerId);
-            if (player == null)
-            {
-                throw new HubException("Player not found in lobby");
-            }
+            player.CurrentGameId = room.GameId;
+            await _lobbyManager.AddOrUpdatePlayerAsync(player);
+
 
             await _gameManager.AddPlayerAsync(room.GameId, playerId, player.PlayerName);
 
@@ -204,18 +257,15 @@ namespace ChessBackend.Hubs
                     room.Teams[room.Players[i].PlayerId] = color;
                 }
 
-                foreach (var player in room.Players)
+                foreach (var p in room.Players)
                 {
-                    var lobbyPlayer = await _lobbyManager.GetPlayerAsync(player.PlayerId);
+                    // Rileggiamo da Redis per avere il ConnectionId più fresco
+                    var fullPlayer = await _lobbyManager.GetPlayerAsync(p.PlayerId);
 
-                    string? connectionId = lobbyPlayer?.SocketId ?? lobbyPlayer?.SocketId;
-
-                    if (!string.IsNullOrEmpty(connectionId))
+                    if (fullPlayer != null && !string.IsNullOrEmpty(fullPlayer.ConnectionId))
                     {
-                        string color = room.Teams[player.PlayerId];
-                        string teamGroupName = $"{room.GameId}_{color}";
-
-                        await Groups.AddToGroupAsync(connectionId, teamGroupName);
+                        string color = room.Teams[p.PlayerId]; // "w" o "b"
+                        await Groups.AddToGroupAsync(fullPlayer.ConnectionId, $"{room.GameId}_{color}");
                     }
                 }
 
@@ -271,8 +321,10 @@ namespace ChessBackend.Hubs
                 };
             }
 
-            await _lobbyManager.AddOrUpdatePlayerAsync(player.PlayerId, player.PlayerName, Context.ConnectionId);
+            player.ConnectionId = Context.ConnectionId;
+            player.CurrentGameId = msg.GameId;
 
+            await _lobbyManager.AddOrUpdatePlayerAsync(player);
 
             var currentPlayers = await _gameManager.GetPlayersAsync(msg.GameId);
 
