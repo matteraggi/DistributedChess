@@ -41,33 +41,44 @@ namespace ChessBackend.Hubs
 
             await _lobbyManager.AddOrUpdatePlayerAsync(player);
 
-            if (room.Players.Count >= room.Capacity)
-            {
-                throw new HubException("Game is full");
-            }
+            bool isRejoining = room.Players.Any(p => p.PlayerId == playerId);
 
-            if (!room.Players.Any(p => p.PlayerId == playerId))
+            if (!isRejoining)
             {
+                if (room.Players.Count >= room.Capacity)
+                {
+                    throw new HubException("Game is full");
+                }
+
                 await _gameManager.AddPlayerAsync(room.GameId, playerId, player.PlayerName);
-
                 room.Players.Add(new Player { PlayerId = playerId, PlayerName = player.PlayerName });
             }
+            else
+            {
+                var pLocal = room.Players.First(p => p.PlayerId == playerId);
+                pLocal.PlayerName = player.PlayerName;
+            }
 
-            // se la partita è già iniziata, quindi sono già stati fatti i team
             if (room.Teams.Count > 0)
             {
-                // metterlo nel team con meno giocatori
-                int whiteCount = room.Teams.Values.Count(c => c == "w");
-                int blackCount = room.Teams.Values.Count(c => c == "b");
+                string myColor;
 
-                string assignedColor = (whiteCount <= blackCount) ? "w" : "b";
-                room.Teams[playerId] = assignedColor;
+                if (isRejoining && room.Teams.ContainsKey(playerId))
+                {
+                    myColor = room.Teams[playerId];
+                }
+                else
+                {
+                    int whiteCount = room.Teams.Values.Count(c => c == "w");
+                    int blackCount = room.Teams.Values.Count(c => c == "b");
+                    myColor = (whiteCount <= blackCount) ? "w" : "b";
+                    room.Teams[playerId] = myColor;
+                }
 
-                // ribilanciare permessi
                 if (room.Mode == GameMode.TeamConsensus)
                 {
                     var teamMembers = room.Players
-                        .Where(p => room.Teams.ContainsKey(p.PlayerId) && room.Teams[p.PlayerId] == assignedColor)
+                        .Where(p => room.Teams.ContainsKey(p.PlayerId) && room.Teams[p.PlayerId] == myColor)
                         .ToList();
 
                     GameHelper.AssignShards(teamMembers, room.PiecePermissions);
@@ -77,9 +88,10 @@ namespace ChessBackend.Hubs
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, msg.GameId);
-            if (room.Teams.TryGetValue(playerId, out string? myColor))
+
+            if (room.Teams.TryGetValue(playerId, out string? assignedColor))
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, $"{msg.GameId}_{myColor}");
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"{msg.GameId}_{assignedColor}");
             }
 
             var joinedMsg = new PlayerJoinedGameMessage
@@ -337,9 +349,24 @@ namespace ChessBackend.Hubs
 
             await Groups.AddToGroupAsync(Context.ConnectionId, msg.GameId);
 
-            if (room.Teams.TryGetValue(playerId, out string? myColor))
+            string? myColor;
+            if (room.Teams.TryGetValue(playerId, out myColor))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"{msg.GameId}_{myColor}");
+            }
+
+            bool permissionsChanged = false;
+
+            if (room.Mode == GameMode.TeamConsensus && room.Teams.TryGetValue(playerId, out myColor))
+            {
+                var teamMembers = room.Players
+                    .Where(p => room.Teams.ContainsKey(p.PlayerId) && room.Teams[p.PlayerId] == myColor)
+                    .ToList();
+
+                GameHelper.AssignShards(teamMembers, room.PiecePermissions);
+
+                await _gameManager.UpdateGameAsync(room);
+                permissionsChanged = true;
             }
 
             var stateMsg = new GameStateMessage
@@ -356,7 +383,14 @@ namespace ChessBackend.Hubs
                 Capacity = room.Capacity
             };
 
-            await Clients.Caller.ReceiveGameState(stateMsg);
+            if (permissionsChanged)
+            {
+                await Clients.Group(msg.GameId).ReceiveGameState(stateMsg);
+            }
+            else
+            {
+                await Clients.Caller.ReceiveGameState(stateMsg);
+            }
         }
     }
 }
