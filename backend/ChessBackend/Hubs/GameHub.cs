@@ -2,7 +2,8 @@
 using GameEngine;
 using Microsoft.AspNetCore.SignalR;
 using Shared.Interfaces;
-using Shared.Messages; // Assumo che qui ci sia PlayerLeftLobbyMessage
+using Shared.Messages;
+using Shared.Models; // Assumo che qui ci sia PlayerLeftLobbyMessage
 
 namespace ChessBackend.Hubs
 {
@@ -27,36 +28,73 @@ namespace ChessBackend.Hubs
             return base.OnConnectedAsync();
         }
 
-        // --- QUI SPOSTIAMO LA LOGICA DI ConnectionManager.RemoveSocketAsync ---
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            // Recuperiamo il PlayerId dallo "zaino" della connessione
-            // (Lo avremo salvato lì dentro quando chiamano JoinLobby)
-            if (Context.Items.TryGetValue("PlayerId", out var playerIdObj) && playerIdObj is string playerId)
+            if (Context.Items.TryGetValue("PlayerId", out var pidObj) && pidObj is string playerId)
             {
-                // 1. Rimuovi lo stato su Redis (usando il tuo Manager esistente)
-                // Nota: Assumo che LobbyManager abbia un metodo RemovePlayerAsync che chiama Redis
-                await _lobbyManager.RemovePlayerAsync(playerId);
+                var player = await _lobbyManager.GetPlayerAsync(playerId);
 
-                // 2. Recupera il nome (opzionale, se serve per il messaggio)
-                // Se il metodo RemovePlayerAsync lo cancella, potresti doverlo recuperare PRIMA di rimuoverlo
-                // Oppure mandi solo l'ID. Qui simulo la logica vecchia:
-                var playerName = "Unknown"; // O recuperalo da Redis se ancora esiste
-
-                // 3. Notifica a TUTTI (Distribuito grazie a Redis Backplane)
-                var leftMsg = new PlayerLeftLobbyMessage
+                if (player != null && !string.IsNullOrEmpty(player.CurrentGameId))
                 {
-                    PlayerId = playerId,
-                    Username = playerName
-                };
+                    var gameId = player.CurrentGameId;
+                    var room = await _gameManager.GetGameAsync(gameId);
 
-                // "PlayerLeft" è il nome dell'evento che Angular ascolterà
-                await Clients.All.PlayerLeft(leftMsg);
+                    if (room != null && room.Mode == GameMode.TeamConsensus)
+                    {
+                        await HandleFailover(room, playerId);
 
-                Console.WriteLine($"Player disconnesso e rimosso: {playerId}");
+                        await _gameManager.UpdateGameAsync(room);
+
+                        await BroadcastGameState(room);
+                    }
+                }
             }
 
             await base.OnDisconnectedAsync(exception);
+        }
+
+        private async Task BroadcastGameState(GameRoom room)
+        {
+            var stateMsg = new GameStateMessage
+            {
+                GameId = room.GameId,
+                Players = room.Players,
+                Fen = room.Fen,
+                Teams = room.Teams,
+                Mode = room.Mode,
+                PiecePermissions = room.PiecePermissions,
+                ActiveProposals = room.ActiveProposals,
+                LastMoveAt = room.LastMoveAt
+            };
+
+            await Clients.Group(room.GameId).ReceiveGameState(stateMsg);
+        }
+        private async Task HandleFailover(GameRoom room, string leaverId)
+        {
+            // Se non aveva permessi specifici, nulla da fare
+            if (!room.PiecePermissions.TryGetValue(leaverId, out var lostPermissions)) return;
+
+            // Trova il colore del leaver (se non c'è, esci)
+            if (!room.Teams.TryGetValue(leaverId, out string? myTeamColor)) return;
+
+            // Trova un compagno di squadra sopravvissuto
+            var teammate = room.Players.FirstOrDefault(p =>
+                p.PlayerId != leaverId &&
+                room.Teams.ContainsKey(p.PlayerId) &&
+                room.Teams[p.PlayerId] == myTeamColor
+            );
+
+            if (teammate != null)
+            {
+                // Trasferisci i permessi al compagno
+                if (!room.PiecePermissions.ContainsKey(teammate.PlayerId))
+                    room.PiecePermissions[teammate.PlayerId] = new List<char>();
+
+                room.PiecePermissions[teammate.PlayerId].AddRange(lostPermissions);
+
+                // Rimuoviamo i duplicati per pulizia
+                room.PiecePermissions[teammate.PlayerId] = room.PiecePermissions[teammate.PlayerId].Distinct().ToList();
+            }
         }
     }
 }

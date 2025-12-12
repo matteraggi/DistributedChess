@@ -2,12 +2,14 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlayerDTO } from '../../models/dtos';
 import { SignalRService } from '../../services/SignalRService .service';
+import { ChessQueen } from "../../components/chess-queen/chess-queen";
 
 @Component({
   selector: 'app-game',
   standalone: true,
   templateUrl: './game.html',
-  styleUrls: ['./game.scss']
+  styleUrls: ['./game.scss'],
+  imports: [ChessQueen]
 })
 export class Game implements OnInit {
 
@@ -126,10 +128,19 @@ export class Game implements OnInit {
   }
 
   readyPercentage = computed(() => {
-    const total = this.players().length;
-    if (total === 0) return 0;
-    const ready = this.readyPlayers().size;
-    return (ready / total) * 100;
+    const cap = this.capacity();
+
+    if (cap <= 0) return 0;
+
+    const playerCount = this.players().length;
+    const readyCount = this.readyPlayers().size;
+
+    // (50 / cap) * playerCount  -> Punti per la presenza
+    // (50 / cap) * readyCount   -> Punti per il ready
+
+    const percentage = (50 * (playerCount + readyCount)) / cap;
+
+    return Math.min(percentage, 100);
   });
 
   /* 

@@ -7,16 +7,13 @@ namespace Shared.Redis
     public partial class RedisService
     {
         // Salva o aggiorna un giocatore
-        public async Task SetPlayerAsync(string playerId, string playerName, string socketId)
+
+        public async Task SetPlayerAsync(Player player)
         {
-            var value = JsonSerializer.Serialize(new Player
-            {
-                PlayerId = playerId,
-                PlayerName = playerName,
-                SocketId = socketId
-            });
-            await Db.StringSetAsync($"player:{playerId}", value);
+            var value = JsonSerializer.Serialize(player);
+            await Db.StringSetAsync($"player:{player.PlayerId}", value);
         }
+
 
         // Ottieni un giocatore
         public async Task<Player?> GetPlayerAsync(string playerId)

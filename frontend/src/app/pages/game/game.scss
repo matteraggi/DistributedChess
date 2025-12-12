@@ -18,21 +18,18 @@ $red-icon-bg: #D32F2F;
 .game-header {
   position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  padding-top: 30px;
-  width: 100%;
+  padding: 20px 20px;
 
   img {
-    position: absolute;
-    left: 30px;
     cursor: pointer;
   }
 }
 
 .player-count-badge {
-  width: 80px;
-  height: 80px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   border: 4px solid $theme-brown;
   color: $theme-brown;
@@ -40,9 +37,8 @@ $red-icon-bg: #D32F2F;
   justify-content: center;
   align-items: center;
   font-family: 'Alata', sans-serif;
-  font-size: 35px;
+  font-size: 25px;
   font-weight: 400;
-  margin: 10px auto;
   background-color: transparent;
 }
 
@@ -57,7 +53,7 @@ $red-icon-bg: #D32F2F;
 
 .content-grid {
   display: flex;
-  flex: 1;
+  flex-direction: row;
   gap: 20px;
   padding: 20px 0;
   min-height: 0;
@@ -213,53 +209,6 @@ $red-icon-bg: #D32F2F;
   flex-direction: column;
 }
 
-.liquid-container {
-  width: 100%;
-  max-width: 200px;
-  text-align: center;
-}
-
-.chess-gauge {
-  width: 100%;
-  height: auto;
-  overflow: visible;
-
-  .piece-bg {
-    fill: rgba($theme-brown, 0.1);
-  }
-
-  .piece-border {
-    fill: none;
-    stroke: $btn-rust;
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .wave {
-    fill: $theme-brown;
-    opacity: 0.9;
-    animation: wave-move 3s linear infinite;
-    transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
-  }
-}
-
-.percentage-text {
-  font-family: 'Alata', sans-serif;
-  color: $theme-brown;
-  font-size: 24px;
-  margin-top: 10px;
-  font-weight: bold;
-}
-
-.liquid-level {
-  transition: transform 1s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-.wave-motion {
-  fill: $theme-brown;
-  animation: wave-scroll 2s linear infinite;
-}
 
 h1 {
   font-family: 'Alata', sans-serif;
@@ -275,7 +224,7 @@ h1 {
   font-size: 20px;
   color: rgba(gray, 1);
   text-align: center;
-  margin-bottom: 20px;
+  margin-top: 0px;
 }
 
 

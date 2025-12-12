@@ -14,7 +14,25 @@ namespace ChessBackend.Hubs
 
             Context.Items["PlayerId"] = playerId;
 
-            await _lobbyManager.AddOrUpdatePlayerAsync(playerId, msg.PlayerName, connectionId);
+            var player = await _lobbyManager.GetPlayerAsync(playerId);
+
+            if (player == null)
+            {
+                player = new Player
+                {
+                    PlayerId = playerId,
+                    PlayerName = msg.PlayerName,
+                    CurrentGameId = null
+                };
+            }
+            else
+            {
+                player.PlayerName = msg.PlayerName;
+            }
+
+            player.ConnectionId = connectionId;
+
+            await _lobbyManager.AddOrUpdatePlayerAsync(player);
 
             var joinedMsg = new PlayerJoinedLobbyMessage
             {

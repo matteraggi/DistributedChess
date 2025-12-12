@@ -11,9 +11,9 @@ public class LobbyManager
     }
 
     // Salva/aggiorna player su Redis
-    public async Task AddOrUpdatePlayerAsync(string playerId, string playerName, string socketId)
+    public async Task AddOrUpdatePlayerAsync(Player player)
     {
-        await _redis.SetPlayerAsync(playerId, playerName, socketId);
+        await _redis.SetPlayerAsync(player);
     }
 
     public async Task<Player?> GetPlayerAsync(string playerId)

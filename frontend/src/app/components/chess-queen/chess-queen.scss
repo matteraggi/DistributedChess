@@ -1,0 +1,91 @@
+$theme-brown: #6C1E21;
+$btn-rust: #B85C38;
+$shadow-color: #4A1416;
+
+:host {
+    display: block;
+    width: 100%;
+}
+
+.liquid-container {
+    width: 100%;
+    max-width: 150px; // Ridotto da 200px a 150px
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+}
+
+.chess-gauge {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+
+    // Bordo principale (più spesso e visibile)
+    .piece-border {
+        stroke: $btn-rust;
+        stroke-width: 2.5px; // Aumentato da 1.5px a 2.5px
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    }
+}
+
+.liquid-level {
+    transition: transform 1.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.wave-motion {
+    &.wave-1 {
+        animation: wave-scroll-1 3s ease-in-out infinite;
+    }
+
+    &.wave-2 {
+        animation: wave-scroll-2 4s ease-in-out infinite;
+        animation-delay: -1s;
+    }
+}
+
+// Animazione onda 1 (movimento principale)
+@keyframes wave-scroll-1 {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(-40px);
+    }
+}
+
+// Animazione onda 2 (movimento secondario)
+@keyframes wave-scroll-2 {
+
+    0%,
+    100% {
+        transform: translateX(-20px);
+    }
+
+    50% {
+        transform: translateX(-60px);
+    }
+}
+
+.percentage-text {
+    font-family: 'Alata', sans-serif;
+    color: $theme-brown;
+    font-size: 20px; // Ridotto da 24px a 20px
+    margin-top: 12px; // Ridotto da 15px a 12px
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+
+    // Animazione al cambio percentuale
+    transition: all 0.3s ease;
+
+    &:hover {
+        color: $btn-rust;
+        transform: scale(1.05);
+    }
+}
