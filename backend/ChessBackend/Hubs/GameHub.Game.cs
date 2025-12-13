@@ -103,7 +103,7 @@ namespace ChessBackend.Hubs
                 Capacity = room.Capacity
             };
 
-            await Clients.Group(msg.GameId).PlayerJoinedGame(joinedMsg);
+            await Clients.All.PlayerJoinedGame(joinedMsg);
         }
 
         public async Task CreateGame(CreateGameMessage msg)
@@ -160,7 +160,9 @@ namespace ChessBackend.Hubs
             {
                 GameId = room.GameId,
                 GameName = room.GameName,
-
+                Capacity = room.Capacity,
+                CreatorId = playerId,
+                CreatorName = player.PlayerName
             };
 
             await Clients.All.GameCreated(gameCreatedMsg);
@@ -227,7 +229,7 @@ namespace ChessBackend.Hubs
                     PlayerName = player.PlayerName
                 };
 
-                await Clients.Group(msg.GameId).PlayerLeftGame(leftMsg);
+                await Clients.All.PlayerLeftGame(leftMsg);
             }
         }
 

@@ -44,7 +44,18 @@ export class LobbyPage implements OnInit {
     });
 
     this.ws.gameCreated$.subscribe(msg => {
-      this.games.update(g => [...g, { gameId: msg.gameId, gameName: msg.gameName }]);
+      this.games.update(g => [
+        ...g,
+        {
+          gameId: msg.gameId,
+          gameName: msg.gameName,
+          capacity: msg.capacity,
+          players: [{
+            playerId: msg.creatorId,
+            playerName: msg.creatorName
+          }]
+        }
+      ]);
     });
 
     this.ws.gameRemoved$.subscribe(msg => {
@@ -56,7 +67,35 @@ export class LobbyPage implements OnInit {
         this.router.navigate(['/game', msg.gameId], {
           state: { maxPlayers: msg.capacity }
         });
+        return;
       }
+      this.games.update(currentGames => {
+        return currentGames.map(g => {
+          if (g.gameId === msg.gameId) {
+            const updatedPlayers = [...(g.players || []), {
+              playerId: msg.playerId,
+              playerName: msg.playerName
+            }];
+
+            return { ...g, players: updatedPlayers };
+          }
+          return g;
+        });
+      });
+    });
+
+    this.ws.playerLeftGame$.subscribe(msg => {
+      // Aggiorna il contatore decrementandolo
+      this.games.update(currentGames => {
+        return currentGames.map(g => {
+          if (g.gameId === msg.gameId) {
+            // Rimuovi il giocatore dalla lista locale
+            const updatedPlayers = (g.players || []).filter(p => p.playerId !== msg.playerId);
+            return { ...g, players: updatedPlayers };
+          }
+          return g;
+        });
+      });
     });
 
     const randomName = "Player_" + Math.floor(Math.random() * 10000);
