@@ -1,4 +1,4 @@
-﻿using ChessDotNetCore; // Namespace corretto
+﻿using ChessDotNetCore;
 
 namespace GameEngine
 {

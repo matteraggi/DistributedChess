@@ -32,6 +32,9 @@ export interface CreateGameMessage {
 export interface GameCreatedMessage {
     gameId: string;
     gameName: string;
+    capacity: number;
+    creatorId: string;
+    creatorName: string;
 }
 
 export interface DeletedGameMessage {

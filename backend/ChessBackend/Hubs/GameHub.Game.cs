@@ -38,6 +38,7 @@ namespace ChessBackend.Hubs
 
             player.ConnectionId = Context.ConnectionId;
             player.CurrentGameId = room.GameId;
+            player.IsReady = false;
 
             await _lobbyManager.AddOrUpdatePlayerAsync(player);
 
@@ -102,7 +103,7 @@ namespace ChessBackend.Hubs
                 Capacity = room.Capacity
             };
 
-            await Clients.Group(msg.GameId).PlayerJoinedGame(joinedMsg);
+            await Clients.All.PlayerJoinedGame(joinedMsg);
         }
 
         public async Task CreateGame(CreateGameMessage msg)
@@ -159,7 +160,9 @@ namespace ChessBackend.Hubs
             {
                 GameId = room.GameId,
                 GameName = room.GameName,
-
+                Capacity = room.Capacity,
+                CreatorId = playerId,
+                CreatorName = player.PlayerName
             };
 
             await Clients.All.GameCreated(gameCreatedMsg);
@@ -191,6 +194,15 @@ namespace ChessBackend.Hubs
                 throw new HubException("Player not in this game");
             }
 
+            var lobbyPlayer = await _lobbyManager.GetPlayerAsync(playerId);
+            if (lobbyPlayer != null)
+            {
+                lobbyPlayer.IsReady = false;
+                lobbyPlayer.CurrentGameId = null;
+
+                await _lobbyManager.AddOrUpdatePlayerAsync(lobbyPlayer);
+            }
+
             await _gameManager.RemovePlayerAsync(msg.GameId, playerId);
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, msg.GameId);
@@ -217,7 +229,7 @@ namespace ChessBackend.Hubs
                     PlayerName = player.PlayerName
                 };
 
-                await Clients.Group(msg.GameId).PlayerLeftGame(leftMsg);
+                await Clients.All.PlayerLeftGame(leftMsg);
             }
         }
 

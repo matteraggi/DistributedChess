@@ -41,6 +41,9 @@ namespace ChessBackend.Hubs
 
                     if (room != null && room.Mode == GameMode.TeamConsensus)
                     {
+                        var currentPlayers = await _gameManager.GetPlayersAsync(gameId);
+                        room.Players = currentPlayers.ToList();
+
                         await HandleFailover(room, playerId);
 
                         await _gameManager.UpdateGameAsync(room);
@@ -62,6 +65,7 @@ namespace ChessBackend.Hubs
                 Fen = room.Fen,
                 Teams = room.Teams,
                 Mode = room.Mode,
+                Capacity = room.Capacity,
                 PiecePermissions = room.PiecePermissions,
                 ActiveProposals = room.ActiveProposals,
                 LastMoveAt = room.LastMoveAt
