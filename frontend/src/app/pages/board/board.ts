@@ -28,7 +28,7 @@ export class Board implements OnInit, OnDestroy {
   myTeamProposals: MoveProposal[] = [];
   teamsMap: { [key: string]: string } = {};
   lastMoveAt: number = 0;
-  readonly TURN_DURATION = 60;
+  readonly TURN_DURATION = 120;
   now: number = Date.now();
   private timerInterval: any;
   toastMessage: string | null = null;
@@ -217,7 +217,7 @@ export class Board implements OnInit, OnDestroy {
   }
 
   getGlobalTimerSeconds(): number {
-    if (!this.lastMoveAt) return 60;
+    if (!this.lastMoveAt) return this.TURN_DURATION;
     const deadline = this.lastMoveAt + (this.TURN_DURATION * 1000);
     const diff = deadline - this.now;
     return Math.max(0, Math.ceil(diff / 1000));
