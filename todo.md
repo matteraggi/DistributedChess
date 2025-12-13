@@ -58,10 +58,11 @@ Test Sicurezza (Defense in Depth):
 - [x] design su figma e implementare
 
 bugfix:
-- [ ] quando un giocatore abbandona la partita/chiude il browser, toglierlo dai giocatori
 - [ ] non mostrare stanze piene
-- [ ] salvare proposte in qualche modo per riprenderle on reload (al momento scompaiono)
 - [ ] rimuovere stato ready ogni volta che si esce dalla lobby di gioco
+- [ ] quando premo tasto back devo abbandonare effettivamente la partita (ora se esco e voglio rientrare risulto già dentro e non posso)
+- [x] salvare proposte in qualche modo per riprenderle on reload (al momento scompaiono)
+- [x] quando un giocatore abbandona la partita/chiude il browser, toglierlo dai giocatori
 - [x] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
 
 extra: 

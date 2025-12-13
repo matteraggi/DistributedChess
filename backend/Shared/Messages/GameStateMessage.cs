@@ -19,7 +19,7 @@ namespace Shared.Messages
         [JsonPropertyName("piecePermission")]
         public Dictionary<string, List<char>> PiecePermissions { get; set; } = new();
 
-        [JsonPropertyName("activeProposal")]
+        [JsonPropertyName("activeProposals")]
         public List<MoveProposal> ActiveProposals { get; set; } = new();
         [JsonPropertyName("lastMoveAt")]
         public DateTime LastMoveAt { get; set; }

@@ -53,17 +53,21 @@
         <h2 class="modal-title">Unisciti alla Battaglia</h2>
 
         <div class="join-list-container">
-            @if (games().length === 0) {
+            @if (noGames()) {
             <div class="empty-state">
                 <p>Nessuna partita attiva al momento.</p>
             </div>
             } @else {
             <ul class="game-list">
                 @for (g of games(); track g.gameId) {
-                <li>
-                    <span class="game-name">{{ g.gameName }}</span>
-                    <button class="btn-small-join" (click)="joinGame(g.gameId)">ENTRA</button>
+                @if (g.players && hasOpenSlot(g)) { <li>
+                    <span class="game-name">
+                        {{ g.gameName }}
+                        <small>({{ g.players.length }}/{{ g.capacity }})</small>
+                    </span>
+                    <button class="btn-small-join" (click)="joinGame(g.gameId)">Entra</button>
                 </li>
+                }
                 }
             </ul>
             }

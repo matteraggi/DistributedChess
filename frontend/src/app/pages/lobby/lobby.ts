@@ -98,4 +98,27 @@ export class LobbyPage implements OnInit {
   async joinGame(gameId: string) {
     await this.ws.joinGame(gameId);
   }
+
+  noGames(): boolean {
+    if (this.games().length === 0) {
+      return true;
+    }
+    for (const g of this.games()) {
+      if (this.hasOpenSlot(g)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  hasOpenSlot(game?: GameRoomDTO | null): boolean {
+    if (!game) return false;
+
+    const hasPlayers = Array.isArray(game.players);
+    const hasCapacity = typeof game.capacity === 'number';
+    if (game.players === undefined || game.capacity === undefined) return false;
+    const hasRoom = hasPlayers && hasCapacity && game.players.length < game.capacity;
+
+    return hasRoom;
+  }
 }

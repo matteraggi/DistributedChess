@@ -14,7 +14,7 @@ namespace ChessBackend.Services
         private readonly IHubContext<GameHub, IChessClient> _hubContext;
         private readonly ChessLogic _chessLogic;
         private readonly ILogger<ProposalTimeoutService> _logger;
-        private readonly TimeSpan _turnDuration = TimeSpan.FromSeconds(60);
+        private readonly TimeSpan _turnDuration = TimeSpan.FromSeconds(120);
 
         public ProposalTimeoutService(
             GameManager gameManager,

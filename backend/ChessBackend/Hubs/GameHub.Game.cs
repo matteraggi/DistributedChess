@@ -38,6 +38,7 @@ namespace ChessBackend.Hubs
 
             player.ConnectionId = Context.ConnectionId;
             player.CurrentGameId = room.GameId;
+            player.IsReady = false;
 
             await _lobbyManager.AddOrUpdatePlayerAsync(player);
 
@@ -189,6 +190,15 @@ namespace ChessBackend.Hubs
             if (player == null)
             {
                 throw new HubException("Player not in this game");
+            }
+
+            var lobbyPlayer = await _lobbyManager.GetPlayerAsync(playerId);
+            if (lobbyPlayer != null)
+            {
+                lobbyPlayer.IsReady = false;
+                lobbyPlayer.CurrentGameId = null;
+
+                await _lobbyManager.AddOrUpdatePlayerAsync(lobbyPlayer);
             }
 
             await _gameManager.RemovePlayerAsync(msg.GameId, playerId);
