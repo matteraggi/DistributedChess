@@ -54,10 +54,11 @@ L'ideale sarebbe:
 
 Test Sicurezza (Defense in Depth):
 - [ ] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità.
-
+- [ ] una mossa illegale viene fermata da frontend? dovrebbe esser così
 - [x] design su figma e implementare
 
 bugfix:
+- [ ] num di persone a partita non aggiornato su utenti appena entrati in lobby generale
 - [x] quando premo tasto back devo abbandonare effettivamente la partita (ora se esco e voglio rientrare risulto già dentro e non posso)
     - [ ] forse non va se la partita è già avviata (?)
 - [x] rimuovere stato ready ogni volta che si esce dalla lobby di gioco
