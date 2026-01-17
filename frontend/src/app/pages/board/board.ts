@@ -5,11 +5,12 @@ import { SignalRService } from '../../services/SignalRService .service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MoveProposal, GameMode } from '../../models/dtos';
 import { LeaveGameModal } from '../../components/leave-game-modal/leave-game-modal';
+import { GameResultNotification } from '../../components/game-result-notification/game-result-notification';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, LeaveGameModal],
+  imports: [CommonModule, LeaveGameModal, GameResultNotification],
   templateUrl: './board.html',
   styleUrls: ['./board.scss']
 })
@@ -40,6 +41,13 @@ export class Board implements OnInit, OnDestroy {
   isLeaveModalOpen = signal(false);
   isLastPlayer = signal(false);
   gameMode = signal<GameMode>(GameMode.Classic1v1);
+
+  // Game Result State
+  showGameResult = false;
+  gameResultMessage = '';
+  gameResultReason = '';
+  redirectCountdown = 0;
+  isVictory = false;
 
   pieceImages: { [key: string]: string } = {
     'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
@@ -137,16 +145,25 @@ export class Board implements OnInit, OnDestroy {
     this.ws.gameOver$.subscribe(msg => {
       if (msg.gameId !== this.gameId) return;
 
-      let message = "";
-      if (msg.winnerPlayerId === this.ws.getOrCreatePlayerId()) {
-        message = "HAI VINTO! 🏆";
+      this.isVictory = msg.winnerPlayerId === this.ws.getOrCreatePlayerId();
+
+      if (this.isVictory) {
+        this.gameResultMessage = "HAI VINTO!";
       } else {
-        message = "HAI PERSO... 💀";
+        this.gameResultMessage = "HAI PERSO...";
       }
 
-      alert(`${message} (Motivo: ${msg.reason})`);
+      this.gameResultReason = msg.reason;
+      this.showGameResult = true;
+      this.redirectCountdown = 5; // 5 seconds countdown
 
-      this.router.navigate(['/lobby']);
+      const countdownInterval = setInterval(() => {
+        this.redirectCountdown--;
+        if (this.redirectCountdown <= 0) {
+          clearInterval(countdownInterval);
+          this.router.navigate(['/lobby']);
+        }
+      }, 1000);
     });
 
     this.ws.playerJoinedGame$.subscribe(msg => {

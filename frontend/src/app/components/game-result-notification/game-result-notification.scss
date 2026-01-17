@@ -1,0 +1,87 @@
+.notification-overlay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    pointer-events: none; /* Allow clicking through if needed, but the card itself should be interactive if we add buttons */
+    animation: slideIn 0.5s ease-out;
+}
+
+.notification-card {
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 20px 30px;
+    min-width: 300px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    &.victory {
+        border-color: #4CAF50;
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+        
+        .icon {
+            font-size: 3rem;
+            animation: bounce 1s infinite;
+        }
+
+        h2 {
+            color: #4CAF50;
+        }
+    }
+
+    &.defeat {
+        border-color: #F44336;
+        box-shadow: 0 0 20px rgba(244, 67, 54, 0.3);
+
+        .icon {
+            font-size: 3rem;
+        }
+
+        h2 {
+            color: #F44336;
+        }
+    }
+
+    h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .reason {
+        margin: 0;
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+
+    .countdown {
+        margin-top: 10px;
+        font-size: 0.8rem;
+        color: #666;
+        font-family: monospace;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}

@@ -127,3 +127,9 @@
     (cancel)="closeLeaveModal()">
 </app-leave-game-modal>
 }
+
+@if (showGameResult) {
+<app-game-result-notification [message]="gameResultMessage" [reason]="gameResultReason" [countdown]="redirectCountdown"
+    [isVictory]="isVictory">
+</app-game-result-notification>
+}

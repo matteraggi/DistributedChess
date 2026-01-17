@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\matte\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj": {}
+    "C:\\Users\\Matteo\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj": {}
   },
   "projects": {
-    "C:\\Users\\matte\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj": {
+    "C:\\Users\\Matteo\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\matte\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj",
+        "projectUniqueName": "C:\\Users\\Matteo\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj",
         "projectName": "GameEngine",
-        "projectPath": "C:\\Users\\matte\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj",
-        "packagesPath": "C:\\Users\\matte\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\matte\\Code\\DistributedChess\\backend\\GameEngine\\obj\\",
+        "projectPath": "C:\\Users\\Matteo\\Code\\DistributedChess\\backend\\GameEngine\\GameEngine.csproj",
+        "packagesPath": "C:\\Users\\Matteo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Matteo\\Code\\DistributedChess\\backend\\GameEngine\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\matte\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Matteo\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -75,7 +75,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
