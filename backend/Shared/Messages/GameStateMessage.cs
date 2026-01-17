@@ -8,6 +8,8 @@ namespace Shared.Messages
     {
         [JsonPropertyName("gameId")]
         public string GameId { get; set; } = "";
+        [JsonPropertyName("gameName")]
+        public string GameName { get; set; } = "";
         [JsonPropertyName("players")]
         public List<Player> Players { get; set; } = new();
         [JsonPropertyName("fen")]

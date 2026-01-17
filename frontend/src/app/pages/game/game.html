@@ -1,6 +1,6 @@
 <header class="game-header">
     <img (click)="goBack()" src="./home.svg" alt="Homepage">
-    <h1>Game Name</h1>
+    <h1>{{ ws.currentGameName() || 'Partita' }}</h1>
     <div class="player-count-badge">
         {{ players().length }}/{{ capacity() }}
     </div>

@@ -70,3 +70,4 @@ bugfix:
 
 extra: 
 - [ ] chat di gioco
+- [ ] design un pò meno vuoto

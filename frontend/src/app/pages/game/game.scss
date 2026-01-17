@@ -1,3 +1,4 @@
+@use 'sass:color';
 $theme-brown: #6C1E21;
 $bg-cream: #FFF8F0;
 $btn-rust: #B85C38;
@@ -186,19 +187,19 @@ $red-icon-bg: #D32F2F;
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 4px 0 darken($btn-rust, 15%);
+  box-shadow: 0 4px 0 color.scale($btn-rust, $lightness: -15%);
   transition: all 0.1s;
   text-transform: uppercase;
   letter-spacing: 1px;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 0 darken($btn-rust, 15%);
+    box-shadow: 0 6px 0 color.scale($btn-rust, $lightness: -15%);
   }
 
   &:active {
     transform: translateY(2px);
-    box-shadow: 0 0 0 darken($btn-rust, 15%);
+    box-shadow: 0 0 0 color.scale($btn-rust, $lightness: -15%);
   }
 }
 

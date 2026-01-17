@@ -15,67 +15,13 @@
                 class="text-white">GAME</span></button>
     </div>
 
-    <span class="footer">© Copyright 2025 - Chess Team Battle</span>
+    <span class="footer">© Copyright 2026 - Chess Team Battle</span>
 </div>
 @if (isCreateGameModalOpen()) {
-<div class="modal-overlay" (click)="closeCreateGameModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-        <h2 class="modal-title">Configura Partita</h2>
-
-        <div class="form-group">
-            <label>Nome Stanza</label>
-            <input type="text" [(ngModel)]="newGameName" class="input-theme" placeholder="Es. Partita Epica">
-        </div>
-
-        <div class="form-group">
-            <label>Giocatori per Squadra</label>
-            <input type="number" min="1" max="4" [(ngModel)]="teamSize" class="input-theme">
-            <div class="mode-description">
-                @if (teamSize === 1) {
-                <strong>Modalità:</strong> 1 vs 1 (Classica)
-                } @else {
-                <strong>Modalità:</strong> {{ teamSize }} vs {{ teamSize }} (Voto di Squadra)
-                }
-            </div>
-        </div>
-
-        <div class="modal-actions">
-            <button (click)="closeCreateGameModal()" class="btn-secondary">Annulla</button>
-            <button (click)="confirmCreate()" class="btn-primary">Crea</button>
-        </div>
-    </div>
-</div>
+<app-create-game-modal (close)="closeCreateGameModal()"></app-create-game-modal>
 }
 
 @if (isJoinGameModalOpen()) {
-<div class="modal-overlay" (click)="closeJoinGameModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-        <h2 class="modal-title">Unisciti alla Battaglia</h2>
-
-        <div class="join-list-container">
-            @if (noGames()) {
-            <div class="empty-state">
-                <p>Nessuna partita attiva al momento.</p>
-            </div>
-            } @else {
-            <ul class="game-list">
-                @for (g of games(); track g.gameId) {
-                @if (g.players && hasOpenSlot(g)) { <li>
-                    <span class="game-name">
-                        {{ g.gameName }}
-                        <small>({{ g.players.length }}/{{ g.capacity }})</small>
-                    </span>
-                    <button class="btn-small-join" (click)="joinGame(g.gameId)">Entra</button>
-                </li>
-                }
-                }
-            </ul>
-            }
-        </div>
-
-        <div class="modal-actions">
-            <button (click)="closeJoinGameModal()" class="btn-secondary">Chiudi</button>
-        </div>
-    </div>
-</div>
+<app-join-game-modal [games]="games()" (close)="closeJoinGameModal()">
+</app-join-game-modal>
 }

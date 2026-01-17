@@ -1,0 +1,126 @@
+@use 'sass:color';
+@use '../../../variables' as *;
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba($dark, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-title {
+    font-family: 'Alata', sans-serif;
+    color: $dark;
+    text-align: center;
+    margin-top: 0;
+    font-size: 24px;
+}
+
+.modal-content {
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 450px;
+    color: $dark;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: $bg-cream; // Fallback
+}
+
+.modal-body {
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Alata', sans-serif;
+    border: none;
+    transition: all 0.2s;
+    font-size: 14px;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid $dark;
+    color: $dark;
+
+    &:hover {
+        background: rgba($dark, 0.05);
+    }
+}
+
+.btn-primary {
+    background: $light;
+    color: white;
+
+    &:hover {
+        background: color.scale($light, $lightness: -5%);
+    }
+}
+
+.btn-warning {
+    background: #FFB74D;
+    color: $dark;
+
+    &:hover {
+        background: color.scale(#FFB74D, $lightness: -10%);
+    }
+}
+
+.btn-danger {
+    background: #D32F2F;
+    color: white;
+
+    &:hover {
+        background: color.scale(#D32F2F, $lightness: -10%);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
