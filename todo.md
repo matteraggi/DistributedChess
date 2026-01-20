@@ -63,8 +63,9 @@ bugfix:
 - [x] quando un giocatore abbandona la partita/chiude il browser, toglierlo dai giocatori
 - [x] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
 
-- [ ] bug numero di persone dentro una lobby non giusto
-- [ ] notifica quando ricevi nuovi pezzi che erano di un tuo compagno
+- [x] entrata e uscita dei giocatori dalla lobby non sempre funzionante
+-> fixed I think 🆗
+- [x] notifica quando ricevi nuovi pezzi che erano di un tuo compagno
 - [ ] Fare test finale
     - [ ] Una mossa illegale viene fermata da frontend? dovrebbe esser così
     - [ ] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità

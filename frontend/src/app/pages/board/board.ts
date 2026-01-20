@@ -28,6 +28,7 @@ export class Board implements OnInit, OnDestroy {
   myPermissions: string[] = [];
   myTeamProposals: MoveProposal[] = [];
   teamsMap: { [key: string]: string } = {};
+  lastPiecePermissionMap: { [key: string]: string[] } = {};
   lastMoveAt: number = 0;
   readonly TURN_DURATION = 120;
   now: number = Date.now();
@@ -105,8 +106,15 @@ export class Board implements OnInit, OnDestroy {
       this.teamsMap = msg.teams;
       this.filterProposals();
       const myId = this.ws.getOrCreatePlayerId();
-      if (msg.piecePermission && msg.piecePermission[myId]) {
-        this.myPermissions = msg.piecePermission[myId];
+      if (msg.piecePermission) {
+        this.checkPieceTransfers(msg.piecePermission, msg.teams);
+        this.lastPiecePermissionMap = msg.piecePermission;
+
+        if (msg.piecePermission[myId]) {
+          this.myPermissions = msg.piecePermission[myId];
+        } else {
+          this.myPermissions = [];
+        }
       } else {
         this.myPermissions = [];
       }
@@ -454,6 +462,48 @@ export class Board implements OnInit, OnDestroy {
     console.groupEnd();
 
     this.isFlipped = this.myColor === 'b';
+  }
+
+  private checkPieceTransfers(newPermissions: { [key: string]: string[] }, newTeams: { [key: string]: string }) {
+    const myId = this.ws.getOrCreatePlayerId();
+
+    // Se è la prima volta che riceviamo i permessi (o reload), non notificare
+    if (Object.keys(this.lastPiecePermissionMap).length === 0) return;
+
+    const myNewPermissions = newPermissions[myId] || [];
+    const myOldPermissions = this.lastPiecePermissionMap[myId] || [];
+
+    // Trova i pezzi nuovi
+    const addedPieces = myNewPermissions.filter(p => !myOldPermissions.includes(p));
+
+    if (addedPieces.length === 0) return;
+
+    addedPieces.forEach(pieceChar => {
+      // Cerca chi aveva questo pezzo prima
+      let previousOwnerId: string | null = null;
+
+      for (const [playerId, perms] of Object.entries(this.lastPiecePermissionMap)) {
+        if (playerId !== myId && perms.includes(pieceChar)) {
+          previousOwnerId = playerId;
+          break;
+        }
+      }
+
+      if (previousOwnerId) {
+        // Verifica se era un compagno di squadra (stesso colore)
+        const myTeam = newTeams[myId];
+        const otherTeam = newTeams[previousOwnerId];
+
+        if (myTeam && otherTeam && myTeam === otherTeam) {
+          const pieceSymbol = this.pieceSymbols[pieceChar] || pieceChar;
+          // Cerca il nome del giocatore
+          const player = (this.players() || []).find(p => p.playerId === previousOwnerId);
+          const playerName = player ? player.playerName : "Teammate";
+
+          this.showToast(`📩 Received ${pieceSymbol} from ${playerName}`);
+        }
+      }
+    });
   }
 
   isSquareBlack(rowIndex: number, colIndex: number): boolean {

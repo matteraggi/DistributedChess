@@ -70,12 +70,14 @@ export class LobbyPage implements OnInit {
       this.games.update(currentGames => {
         return currentGames.map(g => {
           if (g.gameId === msg.gameId) {
-            const updatedPlayers = [...(g.players || []), {
-              playerId: msg.playerId,
-              playerName: msg.playerName
-            }];
-
-            return { ...g, players: updatedPlayers };
+            const currentPlayers = g.players || [];
+            if (!currentPlayers.some(p => p.playerId === msg.playerId)) {
+              const updatedPlayers = [...currentPlayers, {
+                playerId: msg.playerId,
+                playerName: msg.playerName
+              }];
+              return { ...g, players: updatedPlayers };
+            }
           }
           return g;
         });

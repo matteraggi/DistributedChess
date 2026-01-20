@@ -85,8 +85,9 @@ namespace ChessBackend.Hubs
                     GameHelper.AssignShards(teamMembers, room.PiecePermissions);
                 }
 
-                await _gameManager.UpdateGameAsync(room);
             }
+
+            await _gameManager.UpdateGameAsync(room);
 
             await Groups.AddToGroupAsync(Context.ConnectionId, msg.GameId);
 
@@ -137,13 +138,20 @@ namespace ChessBackend.Hubs
 
             room.Capacity = (msg.Mode == GameMode.TeamConsensus) ? (msg.TeamSize * 2) : 2;
 
-            await _gameManager.UpdateGameAsync(room);
 
             player.CurrentGameId = room.GameId;
             await _lobbyManager.AddOrUpdatePlayerAsync(player);
 
+            room.Players.Add(new Player
+            {
+                PlayerId = playerId,
+                PlayerName = player.PlayerName,
+                ConnectionId = player.ConnectionId
+            });
 
             await _gameManager.AddPlayerAsync(room.GameId, playerId, player.PlayerName);
+
+            await _gameManager.UpdateGameAsync(room);
 
             await Groups.AddToGroupAsync(Context.ConnectionId, room.GameId);
 
@@ -186,14 +194,6 @@ namespace ChessBackend.Hubs
                 throw new HubException("Game not found");
             }
 
-            var redisPlayers = await _gameManager.GetPlayersAsync(msg.GameId);
-            var player = redisPlayers.FirstOrDefault(p => p.PlayerId == playerId);
-
-            if (player == null)
-            {
-                throw new HubException("Player not in this game");
-            }
-
             var lobbyPlayer = await _lobbyManager.GetPlayerAsync(playerId);
             if (lobbyPlayer != null)
             {
@@ -203,11 +203,23 @@ namespace ChessBackend.Hubs
                 await _lobbyManager.AddOrUpdatePlayerAsync(lobbyPlayer);
             }
 
-            await _gameManager.RemovePlayerAsync(msg.GameId, playerId);
+            var playerToRemove = room.Players.FirstOrDefault(p => p.PlayerId == playerId);
+            if (playerToRemove != null)
+            {
+                room.Players.Remove(playerToRemove);
+            }
+
+            if (room.Teams.ContainsKey(playerId))
+            {
+                room.Teams.Remove(playerId);
+            }
+
+            if (room.PiecePermissions.ContainsKey(playerId))
+            {
+                room.PiecePermissions.Remove(playerId);
+            }
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, msg.GameId);
-
-            room = await _gameManager.GetGameAsync(msg.GameId);
 
             if (room == null || room.Players.Count == 0)
             {
@@ -222,11 +234,13 @@ namespace ChessBackend.Hubs
             }
             else
             {
+                await _gameManager.UpdateGameAsync(room);
+
                 var leftMsg = new PlayerLeftGameMessage
                 {
                     GameId = msg.GameId,
                     PlayerId = playerId,
-                    PlayerName = player.PlayerName
+                    PlayerName = playerToRemove?.PlayerName ?? lobbyPlayer?.PlayerName ?? "Unknown"
                 };
 
                 await Clients.All.PlayerLeftGame(leftMsg);
