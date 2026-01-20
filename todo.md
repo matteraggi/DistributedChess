@@ -52,14 +52,10 @@ L'ideale sarebbe:
 - in questo modo se l'utente è crashato può rientrare, se invece ha abbandonato può essere sostituito
 - quando rientra vengono spartiti nuovamente i permessi e riottiene esattamente quelli che aveva
 
-Test Sicurezza (Defense in Depth):
-- [ ] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità.
-
 - [x] design su figma e implementare
 
 bugfix:
 - [x] quando premo tasto back devo abbandonare effettivamente la partita (ora se esco e voglio rientrare risulto già dentro e non posso)
-    - [ ] forse non va se la partita è già avviata (?)
 - [x] rimuovere stato ready ogni volta che si esce dalla lobby di gioco
 - [x] capienza giocatori aggiornata in lobby
 - [x] non mostrare stanze piene
@@ -67,5 +63,11 @@ bugfix:
 - [x] quando un giocatore abbandona la partita/chiude il browser, toglierlo dai giocatori
 - [x] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
 
-extra: 
-- [ ] chat di gioco
+- [ ] bug numero di persone dentro una lobby non giusto
+- [ ] notifica quando ricevi nuovi pezzi che erano di un tuo compagno
+- [ ] Fare test finale
+    - [ ] Una mossa illegale viene fermata da frontend? dovrebbe esser così
+    - [ ] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità
+    - [ ] Controllo tasto back per abbandonare la partita ed eventualmente eliminarla se ultimo giocatore
+    - [ ] num di persone a partita non aggiornato su utenti appena entrati in lobby generale
+- [ ] Aggiornare foto relazione

@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, signal } from '@angular/core';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -8,6 +8,8 @@ import { DeletedGameMessage, GameCreatedMessage, GameStartMessage, GameStateMess
 export class SignalRService implements OnDestroy {
 
     public hubConnection: HubConnection | undefined;
+
+    public currentGameName = signal<string | null>(null);
 
     // sostituiscono i tipi
     public lobbyState$ = new Subject<LobbyStateMessage>();
@@ -75,6 +77,9 @@ export class SignalRService implements OnDestroy {
         this.hubConnection.on('ReceiveGameState', (data: GameStateMessage) => {
             console.log('Game State received:', data);
             this.gameState$.next(data);
+            if (data.gameName) {
+                this.currentGameName.set(data.gameName);
+            }
         });
 
         this.hubConnection.on('PlayerLeftGame', (data: PlayerLeftGameMessage) => {
@@ -138,7 +143,7 @@ export class SignalRService implements OnDestroy {
 
     public async createGame(gameName: string, mode: GameMode, teamSize: number) {
         if (!this.hubConnection) return;
-
+        this.currentGameName.set(gameName);
         await this.hubConnection.invoke('CreateGame', {
             gameName: gameName,
             playerId: this.getOrCreatePlayerId(),
@@ -147,9 +152,9 @@ export class SignalRService implements OnDestroy {
         });
     }
 
-    public async joinGame(gameId: string) {
+    public async joinGame(gameId: string, gameName: string) {
         if (!this.hubConnection) return;
-
+        this.currentGameName.set(gameName);
         await this.hubConnection.invoke('JoinGame', {
             gameId: gameId,
             playerId: this.getOrCreatePlayerId()
@@ -170,6 +175,11 @@ export class SignalRService implements OnDestroy {
             gameId: gameId,
             playerId: this.getOrCreatePlayerId()
         });
+    }
+
+    public async deleteGame(gameId: string) {
+        if (!this.hubConnection) return;
+        await this.hubConnection.invoke('DeleteGame', gameId);
     }
 
     public async readyGame(gameId: string, isReady: boolean) {

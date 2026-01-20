@@ -1,6 +1,6 @@
 <header class="game-header">
     <img (click)="goBack()" src="./home.svg" alt="Homepage">
-    <h1>Game Name</h1>
+    <h1>{{ ws.currentGameName() || 'Partita' }}</h1>
     <div class="game-id">
         #{{ gameId }}
     </div>
@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <div class="game-content">
+    <div class="game-content" [class.content-centered]="gameMode() === 0">
 
         <div class="board-section">
 
@@ -72,6 +72,7 @@
             </div>
         </div>
 
+        @if (gameMode() !== 0) {
         <div class="voting-section">
 
             @if (activeProposals.length === 0) {
@@ -116,6 +117,19 @@
             </div>
             }
         </div>
+        }
 
     </div>
 </div>
+
+@if (isLeaveModalOpen()) {
+<app-leave-game-modal [isLastPlayer]="isLastPlayer()" (confirmLeave)="confirmLeave()" (confirmDelete)="confirmDelete()"
+    (cancel)="closeLeaveModal()">
+</app-leave-game-modal>
+}
+
+@if (showGameResult) {
+<app-game-result-notification [message]="gameResultMessage" [reason]="gameResultReason" [countdown]="redirectCountdown"
+    [isVictory]="isVictory">
+</app-game-result-notification>
+}

@@ -68,6 +68,7 @@ export interface GameStateMessage {
     piecePermission: { [key: string]: string[] }; // Mappa ID -> Array di char ['P', 'K']
     activeProposals: MoveProposal[];
     capacity: number;
+    gameName: string;
 }
 
 export interface PlayerLeftGameMessage {

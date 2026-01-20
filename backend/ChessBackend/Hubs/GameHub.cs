@@ -61,6 +61,7 @@ namespace ChessBackend.Hubs
             var stateMsg = new GameStateMessage
             {
                 GameId = room.GameId,
+                GameName = room.GameName,
                 Players = room.Players,
                 Fen = room.Fen,
                 Teams = room.Teams,

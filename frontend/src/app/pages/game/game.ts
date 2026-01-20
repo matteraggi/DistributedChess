@@ -26,7 +26,7 @@ export class Game implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private ws: SignalRService
+    public ws: SignalRService
   ) {
     this.myPlayerId = this.ws.getOrCreatePlayerId();
     const nav = this.router.currentNavigation();

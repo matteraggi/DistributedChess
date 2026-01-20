@@ -1,0 +1,17 @@
+<div class="notification-overlay">
+    <div class="notification-card" [class.victory]="isVictory" [class.defeat]="!isVictory">
+        <div class="icon">
+            @if (isVictory) {
+                🏆
+            } @else {
+                💀
+            }
+        </div>
+        <h2>{{ message }}</h2>
+        <p class="reason">{{ reason }}</p>
+        
+        <div class="countdown">
+            Redirecting to lobby in {{ countdown }}s...
+        </div>
+    </div>
+</div>

@@ -1,0 +1,167 @@
+@use '../../../variables' as *;
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba($dark, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 450px;
+  color: $dark;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.modal-title {
+  font-family: 'Alata', sans-serif;
+  color: $dark;
+  margin-top: 0;
+  margin-bottom: 25px;
+  text-align: center;
+  font-size: 28px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.join-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  border: 1px solid rgba($dark, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 5px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba($dark, 0.2);
+    border-radius: 3px;
+  }
+}
+
+.empty-state {
+  padding: 30px;
+  text-align: center;
+  font-style: italic;
+  font-family: 'Montserrat', sans-serif;
+  color: rgba($dark, 0.6);
+}
+
+.game-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba($dark, 0.05);
+    transition: background 0.2s;
+    border-radius: 6px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: rgba($light, 0.1);
+    }
+
+    .game-name {
+      font-weight: bold;
+      font-size: 16px;
+      font-family: 'Alata', sans-serif;
+
+      small {
+        font-weight: normal;
+        opacity: 0.7;
+        margin-left: 5px;
+      }
+    }
+  }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: $dark;
+  border: 2px solid $dark;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Alata', sans-serif;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba($dark, 0.1);
+  }
+}
+
+.btn-small-join {
+  background: $dark;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  box-shadow: $shadow-sm;
+
+  &:hover {
+    background: $light;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

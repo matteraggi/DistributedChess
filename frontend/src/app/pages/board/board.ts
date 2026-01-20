@@ -1,15 +1,16 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chess } from 'chess.js';
 import { SignalRService } from '../../services/SignalRService .service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MoveProposal } from '../../models/dtos';
-
+import { MoveProposal, GameMode } from '../../models/dtos';
+import { LeaveGameModal } from '../../components/leave-game-modal/leave-game-modal';
+import { GameResultNotification } from '../../components/game-result-notification/game-result-notification';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LeaveGameModal, GameResultNotification],
   templateUrl: './board.html',
   styleUrls: ['./board.scss']
 })
@@ -28,13 +29,25 @@ export class Board implements OnInit, OnDestroy {
   myTeamProposals: MoveProposal[] = [];
   teamsMap: { [key: string]: string } = {};
   lastMoveAt: number = 0;
-  readonly TURN_DURATION = 60;
+  readonly TURN_DURATION = 120;
   now: number = Date.now();
   private timerInterval: any;
   toastMessage: string | null = null;
   private toastTimeout: any;
   illegalProposals = new Set<string>();
   hoveredProposalId: string | null = null;
+
+  // New state
+  isLeaveModalOpen = signal(false);
+  isLastPlayer = signal(false);
+  gameMode = signal<GameMode>(GameMode.Classic1v1);
+
+  // Game Result State
+  showGameResult = false;
+  gameResultMessage = '';
+  gameResultReason = '';
+  redirectCountdown = 0;
+  isVictory = false;
 
   pieceImages: { [key: string]: string } = {
     'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
@@ -60,7 +73,7 @@ export class Board implements OnInit, OnDestroy {
     'Q': '♛',
     'K': '♚'
   };
-  constructor(private route: ActivatedRoute, private ws: SignalRService, private router: Router) { }
+  constructor(private route: ActivatedRoute, public ws: SignalRService, private router: Router) { }
 
   async ngOnInit() {
     this.gameId = this.route.snapshot.paramMap.get('id')!;
@@ -102,6 +115,12 @@ export class Board implements OnInit, OnDestroy {
         this.lastMoveAt = new Date(msg.lastMoveAt).getTime();
         console.log("Timer sincronizzato:", this.lastMoveAt);
       }
+
+
+      // Update Game Mode
+      this.gameMode.set(msg.mode);
+      this.players.set(msg.players || []);
+
       this.updateBoard();
     });
 
@@ -126,16 +145,25 @@ export class Board implements OnInit, OnDestroy {
     this.ws.gameOver$.subscribe(msg => {
       if (msg.gameId !== this.gameId) return;
 
-      let message = "";
-      if (msg.winnerPlayerId === this.ws.getOrCreatePlayerId()) {
-        message = "HAI VINTO! 🏆";
+      this.isVictory = msg.winnerPlayerId === this.ws.getOrCreatePlayerId();
+
+      if (this.isVictory) {
+        this.gameResultMessage = "HAI VINTO!";
       } else {
-        message = "HAI PERSO... 💀";
+        this.gameResultMessage = "HAI PERSO...";
       }
 
-      alert(`${message} (Motivo: ${msg.reason})`);
+      this.gameResultReason = msg.reason;
+      this.showGameResult = true;
+      this.redirectCountdown = 5; // 5 seconds countdown
 
-      this.router.navigate(['/lobby']);
+      const countdownInterval = setInterval(() => {
+        this.redirectCountdown--;
+        if (this.redirectCountdown <= 0) {
+          clearInterval(countdownInterval);
+          this.router.navigate(['/lobby']);
+        }
+      }, 1000);
     });
 
     this.ws.playerJoinedGame$.subscribe(msg => {
@@ -144,8 +172,26 @@ export class Board implements OnInit, OnDestroy {
       this.ws.requestGameState(this.gameId);
     });
 
+    // We assume requestGameState will populate players which we might need for isLastPlayer check
+    // If not, we rely on implicit knowledge. The prompt implies we know if we are the last one.
+    // However, GameStateMessage DOES include players list. 
+    // Wait, the previous implementation DOES NOT store players list in Board except implicitly?
+    // Ah, GameStateMessage has 'players: PlayerDTO[]'. But current Board impl doesn't save it to a property?
+    // Let's check existing code. It calls determineMyColor(msg.teams), but doesn't seem to store msg.players.
+    // I need to store them.
+
+    this.ws.gameState$.subscribe(msg => {
+      // ... (existing subscriptions)
+      // I'll add players tracking logic here or just rely on 'players' if I add it.
+      // For simplicity, let's just use `Object.keys(msg.teams).length` as approximation or add a `players` signal.
+      // Wait, teams only has assignments. Players list is in msg.players. I should store it.
+    });
+
     await this.ws.requestGameState(this.gameId);
   }
+
+  // Helper to store players for "isLastPlayer" check
+  players = signal<any[]>([]);
 
   ngOnDestroy() {
     if (this.timerInterval) {
@@ -217,7 +263,7 @@ export class Board implements OnInit, OnDestroy {
   }
 
   getGlobalTimerSeconds(): number {
-    if (!this.lastMoveAt) return 60;
+    if (!this.lastMoveAt) return this.TURN_DURATION;
     const deadline = this.lastMoveAt + (this.TURN_DURATION * 1000);
     const diff = deadline - this.now;
     return Math.max(0, Math.ceil(diff / 1000));
@@ -426,7 +472,40 @@ export class Board implements OnInit, OnDestroy {
   }
 
   goBack() {
+    // Check if Last Player
+    if (this.players().length === 1) {
+      this.isLastPlayer.set(true);
+      this.isLeaveModalOpen.set(true);
+    } else {
+      // Just explicit confirm or just leave?
+      // User asked for modal only if last player or always?
+      // "mettere un modulo per quando si abbandona la partita e si è l'ultima persona dentro"
+      // Implicitly, if not last player, standard behavior (maybe just leave or confirm simple).
+      // Let's show simple confirm if not last player, as per my assumption in template.
+      this.isLastPlayer.set(false);
+      this.isLeaveModalOpen.set(true);
+    }
+  }
+
+  closeLeaveModal() {
+    this.isLeaveModalOpen.set(false);
+  }
+
+  confirmLeave() {
     this.sendLeaveOnce();
+    this.isLeaveModalOpen.set(false);
+    this.router.navigate(['/lobby']);
+  }
+
+  async confirmDelete() {
+    if (this.hasLeft) return;
+    this.hasLeft = true;
+    try {
+      await this.ws.deleteGame(this.gameId);
+    } catch (e) {
+      console.error("Errore durante deleteGame", e);
+    }
+    this.isLeaveModalOpen.set(false);
     this.router.navigate(['/lobby']);
   }
 }

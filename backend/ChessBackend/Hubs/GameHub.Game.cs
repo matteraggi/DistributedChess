@@ -384,6 +384,7 @@ namespace ChessBackend.Hubs
             var stateMsg = new GameStateMessage
             {
                 GameId = room.GameId,
+                GameName = room.GameName,
                 Players = currentPlayers.ToList(),
                 Fen = room.Fen,
                 Teams = room.Teams ?? new Dictionary<string, string>(),
