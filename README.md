@@ -57,7 +57,7 @@ cd distributed-team-chess
 Bashdocker compose up -d --build
 
 3. **Accedi all'Applicazione**: Una volta avviati i container, i servizi saranno disponibili ai seguenti indirizzi:
-- **🎮 Frontend (Client)**: http://localhost:4200 26
+- **🎮 Frontend (Client)**: http://localhost:4200
 - **🔌 Backend API**: http://localhost:5000
 - **🗄️ Redis**: Porta 6379 (background)
 
@@ -67,7 +67,7 @@ Bashdocker compose up -d --build
 - Apri il browser su http://localhost:4200.
 - Clicca su "Create Game".
 - Seleziona la dimensione del team (es. "2" per una partita 2vs2 in modalità Team Consensus).
-- Attendi nella Waiting Room che altri giocatori si uniscano e che tutti siano "Ready"30.
+- Attendi nella Waiting Room che altri giocatori si uniscano e che tutti siano "Ready".
 
 2. **Gameplay (Sharded Board)**
 - Visualizzazione: I pezzi che non puoi controllare appariranno semi-trasparenti (opachi).
@@ -81,10 +81,10 @@ Bashdocker compose up -d --build
 ## 🧪 Testing e Validazione
 
 Il progetto è stato validato attraverso scenari End-to-End (E2E) per testare la natura distribuita del sistema:
-- Scenario Consenso: Verifica che le mosse illegali vengano bloccate localmente e che quelle legali richiedano il voto.
-- Scenario Failover: Simulazione di crash del nodo (chiusura browser) per verificare il trasferimento automatico dei permessi ai compagni.
-- Scenario Liveness: Verifica che il ProposalTimeout Service risolva i deadlock se un team non vota entro il tempo limite (120s).
+- **Scenario Consenso**: Verifica che le mosse illegali vengano bloccate localmente e che quelle legali richiedano il voto.
+- **Scenario Failover**: Simulazione di crash del nodo (chiusura browser) per verificare il trasferimento automatico dei permessi ai compagni.
+- **Scenario Liveness**: Verifica che il ProposalTimeout Service risolva i deadlock se un team non vota entro il tempo limite (120s).
 
 ## 📄 Licenza e Riferimenti
 Questo progetto è stato sviluppato come parte del corso di Sistemi Distribuiti presso l'Università di Bologna.
-Per i dettagli completi sull'implementazione, fare riferimento alla relazione tecnica allegata Final Report for the Distributed Systems Course 2025/2637.
+Per i dettagli completi sull'implementazione, fare riferimento alla relazione tecnica allegata Final Report for the Distributed Systems Course 2025/26.
