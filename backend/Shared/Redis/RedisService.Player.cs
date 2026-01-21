@@ -1,6 +1,5 @@
 ﻿using Shared.Models;
 using System.Text.Json;
-using StackExchange.Redis;
 
 namespace Shared.Redis
 {

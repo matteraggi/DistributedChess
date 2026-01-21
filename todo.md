@@ -63,11 +63,11 @@ bugfix:
 - [x] quando un giocatore abbandona la partita/chiude il browser, toglierlo dai giocatori
 - [x] Bugfix timer (quando scade senza mosse, quando fai reload della pagina)
 
-- [ ] bug numero di persone dentro una lobby non giusto
-- [ ] notifica quando ricevi nuovi pezzi che erano di un tuo compagno
-- [ ] Fare test finale
-    - [ ] Una mossa illegale viene fermata da frontend? dovrebbe esser così
-    - [ ] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità
-    - [ ] Controllo tasto back per abbandonare la partita ed eventualmente eliminarla se ultimo giocatore
-    - [ ] num di persone a partita non aggiornato su utenti appena entrati in lobby generale
-- [ ] Aggiornare foto relazione
+- [x] entrata e uscita dei giocatori dalla lobby non sempre funzionante -> dovrebbe essere sistemato 🆗
+- [x] notifica quando ricevi nuovi pezzi che erano di un tuo compagno
+- [x] Aggiornare foto relazione
+- [x] Fare test finale
+    - [x] Una mossa illegale viene fermata da frontend? dovrebbe esser così
+    - [x] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità
+    - [x] Controllo tasto back per abbandonare la partita ed eventualmente eliminarla se ultimo giocatore
+- [ ] readme github

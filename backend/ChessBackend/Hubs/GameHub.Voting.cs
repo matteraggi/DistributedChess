@@ -21,12 +21,10 @@ namespace ChessBackend.Hubs
             }
 
             // B. CONTROLLO SHARDING (Possiedo questo pezzo?)
-            // Se siamo in modalità TeamConsensus e ci sono permessi definiti
             if (room.Mode == GameMode.TeamConsensus &&
                 room.PiecePermissions.TryGetValue(playerId, out var allowedPieces) &&
                 allowedPieces != null && allowedPieces.Count > 0)
             {
-                // Chiediamo all'engine che pezzo c'è nella casella di partenza
                 char? pieceChar = _chessLogic.GetPieceTypeAt(room.Fen, msg.From);
 
                 if (pieceChar == null) throw new HubException("No piece at source!");
@@ -39,10 +37,15 @@ namespace ChessBackend.Hubs
                 }
             }
 
+            // C. CONTROLLO LEGALITÀ SCACCHISTICA
+            if (!_chessLogic.TryMakeMove(room.Fen, msg.From, msg.To, out _))
+            {
+                throw new HubException("Illegal move! The move violates chess rules.");
+            }
+
             room.ActiveProposals.RemoveAll(p => p.ProposerId == playerId);
 
-            // C. CREA O AGGIORNA PROPOSTA
-            // Nel modello competitivo, aggiungiamo una nuova proposta alla lista
+            // D. CREA O AGGIORNA PROPOSTA
             var proposal = new MoveProposal
             {
                 ProposerId = playerId,
@@ -51,14 +54,10 @@ namespace ChessBackend.Hubs
                 Promotion = msg.Promotion
             };
 
-            // Il proponente vota automaticamente per se stesso
-            // mettere in frontend: proponi o vota
             proposal.Votes.Add(playerId);
 
-            // Aggiungi alla lista
             room.ActiveProposals.Add(proposal);
 
-            // Salva su Redis
             await _gameManager.UpdateGameAsync(room);
 
             await BroadcastProposals(room);
