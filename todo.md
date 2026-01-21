@@ -70,3 +70,4 @@ bugfix:
     - [ ] Una mossa illegale viene fermata da frontend? dovrebbe esser così
     - [ ] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità
     - [x] Controllo tasto back per abbandonare la partita ed eventualmente eliminarla se ultimo giocatore
+- [ ] readme github

@@ -6,11 +6,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MoveProposal, GameMode } from '../../models/dtos';
 import { LeaveGameModal } from '../../components/leave-game-modal/leave-game-modal';
 import { GameResultNotification } from '../../components/game-result-notification/game-result-notification';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, LeaveGameModal, GameResultNotification],
+  imports: [CommonModule, LeaveGameModal, GameResultNotification, FormsModule],
   templateUrl: './board.html',
   styleUrls: ['./board.scss']
 })
@@ -42,6 +43,11 @@ export class Board implements OnInit, OnDestroy {
   isLeaveModalOpen = signal(false);
   isLastPlayer = signal(false);
   gameMode = signal<GameMode>(GameMode.Classic1v1);
+
+  // Debug State
+  debugMode = signal(false);
+  debugFrom = '';
+  debugTo = '';
 
   // Game Result State
   showGameResult = false;
@@ -180,19 +186,8 @@ export class Board implements OnInit, OnDestroy {
       this.ws.requestGameState(this.gameId);
     });
 
-    // We assume requestGameState will populate players which we might need for isLastPlayer check
-    // If not, we rely on implicit knowledge. The prompt implies we know if we are the last one.
-    // However, GameStateMessage DOES include players list. 
-    // Wait, the previous implementation DOES NOT store players list in Board except implicitly?
-    // Ah, GameStateMessage has 'players: PlayerDTO[]'. But current Board impl doesn't save it to a property?
-    // Let's check existing code. It calls determineMyColor(msg.teams), but doesn't seem to store msg.players.
-    // I need to store them.
-
     this.ws.gameState$.subscribe(msg => {
       // ... (existing subscriptions)
-      // I'll add players tracking logic here or just rely on 'players' if I add it.
-      // For simplicity, let's just use `Object.keys(msg.teams).length` as approximation or add a `players` signal.
-      // Wait, teams only has assignments. Players list is in msg.players. I should store it.
     });
 
     await this.ws.requestGameState(this.gameId);
@@ -399,6 +394,9 @@ export class Board implements OnInit, OnDestroy {
         console.log("Proposta inviata!");
         this.selectedSquare = null;
         this.possibleMoves = [];
+      } else {
+        alert("❌ MOSSA BLOCCATA DAL FRONTEND: Mossa illegale!");
+        console.warn("Mossa illegale bloccata dal frontend:", from, to);
       }
     } catch (e) {
       console.error(e);
@@ -557,5 +555,29 @@ export class Board implements OnInit, OnDestroy {
     }
     this.isLeaveModalOpen.set(false);
     this.router.navigate(['/lobby']);
+  }
+
+  toggleDebug() {
+    this.debugMode.update(v => !v);
+  }
+
+  async forceIllegalMove() {
+    if (!this.debugFrom || !this.debugTo) {
+      alert("Inserisci From e To");
+      return;
+    }
+    console.warn(`[DEBUG] Forcing RAW move: ${this.debugFrom} -> ${this.debugTo}`);
+    // Bypass frontend checks directly
+    await this.ws.proposeMove(this.gameId, this.debugFrom, this.debugTo, 'q');
+  }
+
+  async testFrontendMove() {
+    if (!this.debugFrom || !this.debugTo) {
+      alert("Inserisci From e To");
+      return;
+    }
+    console.log(`[DEBUG] Testing Frontend move: ${this.debugFrom} -> ${this.debugTo}`);
+    // Use the standard tryMove which contains validation
+    await this.tryMove(this.debugFrom, this.debugTo);
   }
 }

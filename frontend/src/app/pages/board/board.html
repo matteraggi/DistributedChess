@@ -4,6 +4,7 @@
     <div class="game-id">
         #{{ gameId }}
     </div>
+    <button (click)="toggleDebug()" class="debug-btn">🐞</button>
 </header>
 
 <div class="main-wrapper">
@@ -132,4 +133,18 @@
 <app-game-result-notification [message]="gameResultMessage" [reason]="gameResultReason" [countdown]="redirectCountdown"
     [isVictory]="isVictory">
 </app-game-result-notification>
+}
+
+@if (debugMode()) {
+<div class="debug-panel">
+    <h3>🐞 Security Debugger</h3>
+    <div class="debug-controls">
+        <input [(ngModel)]="debugFrom" placeholder="From (e.g. e2)" class="debug-input">
+        <input [(ngModel)]="debugTo" placeholder="To (e.g. e4)" class="debug-input">
+        <div class="debug-actions">
+            <button (click)="testFrontendMove()" class="btn-debug btn-front">Test Frontend</button>
+            <button (click)="forceIllegalMove()" class="btn-debug btn-raw">Force Raw Move</button>
+        </div>
+    </div>
+</div>
 }
