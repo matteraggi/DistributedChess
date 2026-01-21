@@ -66,8 +66,8 @@ bugfix:
 - [x] entrata e uscita dei giocatori dalla lobby non sempre funzionante -> dovrebbe essere sistemato 🆗
 - [x] notifica quando ricevi nuovi pezzi che erano di un tuo compagno
 - [x] Aggiornare foto relazione
-- [ ] Fare test finale
-    - [ ] Una mossa illegale viene fermata da frontend? dovrebbe esser così
-    - [ ] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità
+- [x] Fare test finale
+    - [x] Una mossa illegale viene fermata da frontend? dovrebbe esser così
+    - [x] Verificare che il Backend blocchi comunque una mossa illegale anche se il team (hackerato) la vota all'unanimità
     - [x] Controllo tasto back per abbandonare la partita ed eventualmente eliminarla se ultimo giocatore
 - [ ] readme github
