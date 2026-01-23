@@ -33,15 +33,15 @@ Ad esempio, il Giocatore A controlla solo i Pedoni, mentre il Giocatore B contro
 
 ## 🛠️ Tech Stack
 
-**Frontend**: Angular
-**Backend**: .NET (C#)
-**Database**: Redis
-**DevOps**: Docker
-**Protocolli**: WebSocket
+- **Frontend**: Angular
+- **Backend**: .NET (C#)
+- **Database**: Redis
+- **DevOps**: Docker
+- **Protocolli**: WebSocket
 
 ## 🚀 Guida all'Installazione e Avvio
 
-Il sistema è progettato per essere agnostico rispetto alla piattaforma e completamente riproducibile tramite containerizzazione.
+Il sistema è progettato per essere completamente riproducibile tramite containerizzazione.
 
 **Prerequisiti**
 - Git
@@ -50,11 +50,11 @@ Il sistema è progettato per essere agnostico rispetto alla piattaforma e comple
 **Istruzioni (Local Deployment)**
 
 1. **Clona il repository**: 
-Bashgit clone https://github.com/tuo-username/distributed-team-chess.git
+git clone https://github.com/matteraggi/distributed-team-chess.git
 cd distributed-team-chess
 
-2. **Build e Avvio dei Container**: Esegui il comando di orchestrazione. Il flag --build assicura la compilazione del codice C# e TypeScript nelle immagini.
-Bashdocker compose up -d --build
+2. **Build e Avvio dei Container**: Esegui il comando per far partire il docker.
+docker compose up -d --build
 
 3. **Accedi all'Applicazione**: Una volta avviati i container, i servizi saranno disponibili ai seguenti indirizzi:
 - **🎮 Frontend (Client)**: http://localhost:4200
@@ -87,4 +87,4 @@ Il progetto è stato validato attraverso scenari End-to-End (E2E) per testare la
 
 ## 📄 Licenza e Riferimenti
 Questo progetto è stato sviluppato come parte del corso di Sistemi Distribuiti presso l'Università di Bologna.
-Per i dettagli completi sull'implementazione, fare riferimento alla relazione tecnica allegata Final Report for the Distributed Systems Course 2025/26.
+Per i dettagli completi sull'implementazione, fare riferimento alla relazione tecnica allegata.
